@@ -47,6 +47,71 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 - **Auth:** Auth0 (HIPAA BAA)
 - **Infrastructure:** AWS ECS Fargate, Terraform
 
+## Development Setup
+
+### Prerequisites
+
+- Node.js >= 18
+- pnpm >= 8
+- Docker & Docker Compose
+
+### Quick Start
+
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Start database services
+docker compose up -d
+
+# 3. Copy environment config
+cp .env.example .env
+
+# 4. Run database migrations and seed
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+
+# 5. Start dev servers (API on :3001, Web on :3000)
+pnpm dev
+```
+
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start API + Web in parallel |
+| `pnpm dev:api` | Start API only |
+| `pnpm dev:web` | Start Web only |
+| `pnpm build` | Build all packages |
+| `pnpm db:generate` | Generate Prisma client |
+| `pnpm db:migrate` | Run database migrations |
+| `pnpm db:seed` | Seed database with sample data |
+| `pnpm db:studio` | Open Prisma Studio |
+
+### Seeded Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@orthomonitor.dev | password123 |
+| Doctor | doctor@orthomonitor.dev | password123 |
+
+### Project Structure
+
+```
+ortho-guru-monitoring/
+├── apps/
+│   ├── api/          # NestJS backend (port 3001)
+│   └── web/          # Next.js dashboard (port 3000)
+├── packages/
+│   └── shared/       # Shared TS types & constants
+└── docs/             # Research & specifications
+```
+
+### API Documentation
+
+Swagger UI available at `http://localhost:3001/api/docs` when the API is running.
+
 ## Status
 
-🟡 Pre-development — Specification complete, team recruitment phase.
+🟢 Scaffold complete — Backend API + Web Dashboard skeleton ready for feature development.
