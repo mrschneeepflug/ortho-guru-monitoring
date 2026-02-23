@@ -37,12 +37,22 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 | DentalMonitoring Entry Cost | €62,500+ upfront |
 | Our Price Advantage | ~90% cheaper |
 
-## Tech Stack (MVP)
+## Tech Stack
+
+### Current (Dev Scaffold)
+
+- **Web Dashboard:** Next.js 14 (TypeScript, Tailwind, TanStack Query)
+- **API:** Node.js + NestJS (Swagger auto-docs)
+- **Database:** PostgreSQL 16 (Docker) + Prisma ORM
+- **Cache:** Redis 7 (Docker)
+- **Auth:** Stub JWT with bcrypt (local)
+- **Storage:** Local file uploads (stub)
+- **Monorepo:** pnpm workspaces
+
+### Planned (Production)
 
 - **Mobile:** React Native + Expo
-- **Web Dashboard:** Next.js 14 (TypeScript)
-- **API:** Node.js + NestJS
-- **Database:** PostgreSQL 16 (AWS RDS)
+- **Database:** AWS RDS (PostgreSQL 16)
 - **Storage:** AWS S3 (encrypted)
 - **Auth:** Auth0 (HIPAA BAA)
 - **Infrastructure:** AWS ECS Fargate, Terraform
