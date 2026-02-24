@@ -5,6 +5,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { PrismaExceptionFilter } from './filters/prisma-exception.filter';
 import { AuditLogInterceptor } from './interceptors/audit-log.interceptor';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PracticeIsolationGuard } from './guards/practice-isolation.guard';
 
 @Module({
@@ -25,6 +26,10 @@ import { PracticeIsolationGuard } from './guards/practice-isolation.guard';
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLogInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
     },
     {
       provide: APP_GUARD,

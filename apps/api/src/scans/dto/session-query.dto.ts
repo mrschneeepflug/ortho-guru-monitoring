@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsEnum, IsInt, Min } from 'class-validator';
+import { IsOptional, IsEnum, IsInt, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ScanStatus } from '@prisma/client';
 
@@ -28,4 +28,11 @@ export class SessionQueryDto {
   @IsOptional()
   @IsEnum(ScanStatus)
   status?: ScanStatus;
+
+  @ApiPropertyOptional({
+    description: 'Filter by patient ID',
+  })
+  @IsOptional()
+  @IsString()
+  patientId?: string;
 }

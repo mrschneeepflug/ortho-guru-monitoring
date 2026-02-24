@@ -11,7 +11,7 @@ import { formatDate, formatRelativeTime } from '@/lib/utils';
 export default function PatientDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: patient, isLoading } = usePatient(id);
-  const { data: scans } = useScans({ page: 1, limit: 10 });
+  const { data: scans } = useScans({ patientId: id, page: 1, limit: 10 });
 
   if (isLoading) {
     return <div className="animate-pulse space-y-4"><div className="h-8 bg-gray-200 rounded w-1/3" /><div className="h-48 bg-gray-200 rounded" /></div>;
@@ -19,7 +19,7 @@ export default function PatientDetailPage() {
 
   if (!patient) return <p className="text-gray-500">Patient not found</p>;
 
-  const patientScans = scans?.items.filter((s) => s.patientId === id) ?? [];
+  const patientScans = scans?.items ?? [];
 
   return (
     <div className="space-y-6">

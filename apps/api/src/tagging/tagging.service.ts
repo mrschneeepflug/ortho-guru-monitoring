@@ -64,13 +64,16 @@ export class TaggingService {
     return tagSet;
   }
 
-  async findBySession(sessionId: string) {
+  async findBySession(sessionId: string, practiceId: string) {
     const tagSet = await this.prisma.tagSet.findUnique({
       where: { sessionId },
-      include: { taggedBy: { select: { id: true, name: true } } },
+      include: {
+        taggedBy: { select: { id: true, name: true } },
+        session: { include: { patient: true } },
+      },
     });
 
-    if (!tagSet) {
+    if (!tagSet || tagSet.session.patient.practiceId !== practiceId) {
       throw new NotFoundException(
         `Tags for session "${sessionId}" not found`,
       );

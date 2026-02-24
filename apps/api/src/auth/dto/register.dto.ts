@@ -1,6 +1,5 @@
-import { IsEmail, IsString, MinLength, IsOptional, IsEnum } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DoctorRole } from '@prisma/client';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Dr. Jane Smith' })
@@ -19,9 +18,4 @@ export class RegisterDto {
   @ApiProperty({ example: 'clxxxxxxxxxxxxxx' })
   @IsString()
   practiceId: string;
-
-  @ApiPropertyOptional({ enum: DoctorRole, default: DoctorRole.DOCTOR })
-  @IsOptional()
-  @IsEnum(DoctorRole)
-  role?: DoctorRole = DoctorRole.DOCTOR;
 }

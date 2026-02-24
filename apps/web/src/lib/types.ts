@@ -128,6 +128,13 @@ export interface ComplianceStats {
   overduePatients: Array<{ id: string; name: string; daysSinceLastScan: number | null }>;
 }
 
+export interface FeedItem {
+  id: string;
+  type: string;
+  date: string;
+  data: Record<string, unknown>;
+}
+
 export interface TagAnalytics {
   taggingRate: number;
   discountPercent: number;

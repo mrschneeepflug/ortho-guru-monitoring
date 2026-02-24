@@ -4,9 +4,11 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { Public } from '../common/decorators/public.decorator';
 
 // TODO: Replace with Auth0 integration
 @ApiTags('auth')
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

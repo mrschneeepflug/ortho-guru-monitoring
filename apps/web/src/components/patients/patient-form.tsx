@@ -22,7 +22,10 @@ export function PatientForm({ onSubmit, loading }: PatientFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSubmit({
-      ...form,
+      name: form.name,
+      doctorId: form.doctorId,
+      treatmentType: form.treatmentType || undefined,
+      alignerBrand: form.alignerBrand || undefined,
       totalStages: form.totalStages ? parseInt(form.totalStages) : undefined,
       scanFrequency: parseInt(form.scanFrequency),
     });

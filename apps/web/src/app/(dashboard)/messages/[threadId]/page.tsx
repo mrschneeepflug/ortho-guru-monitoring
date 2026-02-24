@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useThread, useSendMessage } from '@/lib/hooks/use-messages';
 import { useAuthContext } from '@/providers/auth-provider';
+import type { Message } from '@/lib/types';
 import { formatDateTime } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +25,7 @@ export default function ThreadPage() {
   if (isLoading) return <div className="animate-pulse h-64 bg-gray-200 rounded" />;
   if (!thread) return <p className="text-gray-500">Thread not found</p>;
 
-  const messages = (thread as unknown as { messages: Array<{ id: string; senderType: string; senderId: string; content: string; createdAt: string }> }).messages ?? [];
+  const messages = (thread as { messages?: Message[] }).messages ?? [];
 
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)]">

@@ -6,7 +6,6 @@ import {
   Param,
   Body,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,7 +16,6 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { ScanStatus } from '@prisma/client';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { ScansService } from './scans.service';
@@ -28,7 +26,6 @@ import { SessionResponseDto } from './dto/session-response.dto';
 
 @ApiTags('scans')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('scans/sessions')
 export class ScansController {
   constructor(private readonly scansService: ScansService) {}

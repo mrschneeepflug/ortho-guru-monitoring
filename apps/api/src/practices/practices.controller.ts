@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PracticesService } from './practices.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -19,7 +18,6 @@ import { UpdatePracticeDto } from './dto/update-practice.dto';
 
 @ApiTags('practices')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('practices')
 export class PracticesController {
   constructor(private readonly practicesService: PracticesService) {}

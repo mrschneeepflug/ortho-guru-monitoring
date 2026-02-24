@@ -38,7 +38,7 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl p-6 shadow-sm animate-pulse h-48" />
           ) : (
             <div className="space-y-3">
-              {(feed as Array<{ id: string; type: string; date: string; data: Record<string, unknown> }>)?.map((item) => (
+              {feed?.map((item) => (
                 <ScanFeedCard key={item.id} item={item} />
               )) ?? <p className="text-gray-500">No recent activity</p>}
             </div>

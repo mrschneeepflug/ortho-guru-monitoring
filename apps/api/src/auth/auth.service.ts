@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { DoctorRole } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { LoginDto } from './dto/login.dto';
@@ -28,13 +29,14 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
+    // TODO: Admin creation should be done through a protected admin endpoint
     const doctor = await this.prisma.doctor.create({
       data: {
         name: dto.name,
         email: dto.email,
         passwordHash,
         practiceId: dto.practiceId,
-        role: dto.role,
+        role: DoctorRole.DOCTOR,
       },
     });
 

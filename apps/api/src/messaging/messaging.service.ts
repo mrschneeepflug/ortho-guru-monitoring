@@ -117,15 +117,17 @@ export class MessagingService {
 
   /**
    * Send a message within an existing thread.
-   * Validates that the thread exists before creating the message.
+   * Validates that the thread exists and belongs to the user's practice.
    */
   async sendMessage(
     dto: CreateMessageDto,
     userId: string,
     userRole: string,
+    practiceId: string,
   ) {
-    const thread = await this.prisma.messageThread.findUnique({
-      where: { id: dto.threadId },
+    const thread = await this.prisma.messageThread.findFirst({
+      where: { id: dto.threadId, patient: { practiceId } },
+      include: { patient: true },
     });
 
     if (!thread) {
@@ -148,13 +150,15 @@ export class MessagingService {
 
   /**
    * Mark a single message as read by setting the readAt timestamp.
+   * Verifies the message's thread belongs to the user's practice.
    */
-  async markAsRead(messageId: string, userId: string) {
+  async markAsRead(messageId: string, userId: string, practiceId: string) {
     const message = await this.prisma.message.findUnique({
       where: { id: messageId },
+      include: { thread: { include: { patient: true } } },
     });
 
-    if (!message) {
+    if (!message || message.thread.patient.practiceId !== practiceId) {
       throw new NotFoundException(
         `Message with ID "${messageId}" not found`,
       );

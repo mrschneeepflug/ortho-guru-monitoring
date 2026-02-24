@@ -5,7 +5,6 @@ import {
   Patch,
   Param,
   Body,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,7 +13,6 @@ import {
   ApiOkResponse,
   ApiCreatedResponse,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { MessagingService } from './messaging.service';
@@ -25,7 +23,6 @@ import { MessageResponseDto } from './dto/message-response.dto';
 
 @ApiTags('messaging')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('messaging')
 export class MessagingController {
   constructor(private readonly messagingService: MessagingService) {}
@@ -64,7 +61,7 @@ export class MessagingController {
     @Body() dto: CreateMessageDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.messagingService.sendMessage(dto, user.sub, user.role);
+    return this.messagingService.sendMessage(dto, user.sub, user.role, user.practiceId);
   }
 
   @Patch('messages/:id/read')
@@ -74,6 +71,6 @@ export class MessagingController {
     @Param('id') id: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.messagingService.markAsRead(id, user.sub);
+    return this.messagingService.markAsRead(id, user.sub, user.practiceId);
   }
 }

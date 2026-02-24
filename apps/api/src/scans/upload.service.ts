@@ -12,10 +12,11 @@ export class UploadService {
    * Generate a presigned upload URL for a scan image.
    * TODO: Replace with S3 integration
    */
-  async generateUploadUrl(sessionId: string, imageType: ImageType) {
-    // Verify the session exists
-    const session = await this.prisma.scanSession.findUnique({
-      where: { id: sessionId },
+  async generateUploadUrl(sessionId: string, imageType: ImageType, practiceId: string) {
+    // Verify the session exists and belongs to the practice
+    const session = await this.prisma.scanSession.findFirst({
+      where: { id: sessionId, patient: { practiceId } },
+      include: { patient: true },
     });
 
     if (!session) {
@@ -43,10 +44,12 @@ export class UploadService {
     sessionId: string,
     imageType: ImageType,
     file: Express.Multer.File,
+    practiceId: string,
   ) {
-    // Verify the session exists
-    const session = await this.prisma.scanSession.findUnique({
-      where: { id: sessionId },
+    // Verify the session exists and belongs to the practice
+    const session = await this.prisma.scanSession.findFirst({
+      where: { id: sessionId, patient: { practiceId } },
+      include: { patient: true },
     });
 
     if (!session) {

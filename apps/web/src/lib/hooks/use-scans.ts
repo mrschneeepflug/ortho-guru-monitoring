@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api-client';
 import type { ScanSession, PaginatedResponse, ApiResponse } from '../types';
 
-export function useScans(params?: { page?: number; limit?: number; status?: string }) {
+export function useScans(params?: { page?: number; limit?: number; status?: string; patientId?: string }) {
   return useQuery({
     queryKey: ['scans', params],
     queryFn: async () => {

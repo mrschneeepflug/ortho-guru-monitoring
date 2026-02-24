@@ -43,7 +43,7 @@ export class ScansService {
    * Optionally filters by ScanStatus.
    */
   async findAll(practiceId: string, query: SessionQueryDto) {
-    const { page = 1, limit = 20, status } = query;
+    const { page = 1, limit = 20, status, patientId } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ScanSessionWhereInput = {
@@ -52,6 +52,10 @@ export class ScansService {
 
     if (status) {
       where.status = status;
+    }
+
+    if (patientId) {
+      where.patientId = patientId;
     }
 
     const [items, total] = await this.prisma.$transaction([

@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api-client';
-import type { DashboardSummary, ComplianceStats, ApiResponse } from '../types';
+import type { DashboardSummary, ComplianceStats, FeedItem, ApiResponse } from '../types';
 
 export function useDashboardSummary() {
   return useQuery({
@@ -18,7 +18,7 @@ export function useDashboardFeed() {
   return useQuery({
     queryKey: ['dashboard', 'feed'],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<unknown[]>>('/dashboard/feed');
+      const { data } = await apiClient.get<ApiResponse<FeedItem[]>>('/dashboard/feed');
       return data.data;
     },
   });

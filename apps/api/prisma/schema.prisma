@@ -81,7 +81,6 @@ model Doctor {
   patients       Patient[]
   reviewedScans  ScanSession[] @relation("ReviewedBy")
   tagSets        TagSet[]
-  sentMessages   Message[]     @relation("SentByDoctor")
 
   @@index([practiceId])
   @@map("doctors")
@@ -208,7 +207,6 @@ model Message {
   createdAt   DateTime   @default(now())
 
   thread MessageThread @relation(fields: [threadId], references: [id])
-  doctor Doctor?       @relation("SentByDoctor", fields: [senderId], references: [id])
 
   @@index([threadId])
   @@map("messages")

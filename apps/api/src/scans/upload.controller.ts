@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  UseGuards,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -16,14 +15,14 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageType } from '@prisma/client';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { UploadService } from './upload.service';
 import { UploadUrlRequestDto } from './dto/upload-url-request.dto';
 import { UploadUrlResponseDto } from './dto/upload-url-response.dto';
 
 @ApiTags('scans')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('scans/upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
@@ -35,8 +34,11 @@ export class UploadController {
   @Post('upload-url')
   @ApiOperation({ summary: 'Get a presigned upload URL for a scan image' })
   @ApiCreatedResponse({ type: UploadUrlResponseDto })
-  getUploadUrl(@Body() dto: UploadUrlRequestDto) {
-    return this.uploadService.generateUploadUrl(dto.sessionId, dto.imageType);
+  getUploadUrl(
+    @Body() dto: UploadUrlRequestDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.uploadService.generateUploadUrl(dto.sessionId, dto.imageType, user.practiceId);
   }
 
   /**
@@ -62,7 +64,8 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
     @Body('sessionId') sessionId: string,
     @Body('imageType') imageType: ImageType,
+    @CurrentUser() user: JwtPayload,
   ) {
-    return this.uploadService.handleLocalUpload(sessionId, imageType, file);
+    return this.uploadService.handleLocalUpload(sessionId, imageType, file, user.practiceId);
   }
 }

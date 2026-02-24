@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { AuthUser, getUser, isAuthenticated as checkAuth, login as authLogin, logout as authLogout } from '@/lib/auth';
+import { AuthUser, getUser, login as authLogin, logout as authLogout } from '@/lib/auth';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated: checkAuth(), login, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated: !loading && !!user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

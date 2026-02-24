@@ -4,12 +4,10 @@ import {
   Post,
   Param,
   Body,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { TaggingService } from './tagging.service';
 import { TaggingAnalyticsService } from './tagging-analytics.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { CreateTagSetDto } from './dto/create-tag-set.dto';
@@ -17,7 +15,6 @@ import { TagAnalyticsResponseDto } from './dto/tag-analytics-response.dto';
 
 @ApiTags('tagging')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('tagging')
 export class TaggingController {
   constructor(
@@ -40,8 +37,11 @@ export class TaggingController {
   }
 
   @Get('sessions/:sessionId/tags')
-  findBySession(@Param('sessionId') sessionId: string) {
-    return this.taggingService.findBySession(sessionId);
+  findBySession(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.taggingService.findBySession(sessionId, user.practiceId);
   }
 
   @Get('analytics')
