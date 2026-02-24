@@ -28,7 +28,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     const startTime = Date.now();
 
     return next.handle().pipe(
-      tap(async (responseData) => {
+      tap(async (responseData: Record<string, any>) => {
         try {
           const resourceId =
             responseData?.data?.id || request.params?.id || null;
