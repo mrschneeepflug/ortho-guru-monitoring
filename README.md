@@ -25,6 +25,7 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 | [Go-To-Market Strategy](./docs/research/06-go-to-market-strategy.md) | Pricing, target market, launch plan |
 | [Regulatory & Compliance](./docs/research/07-regulatory-compliance.md) | HIPAA, GDPR, FDA/SaMD pathway |
 | [Risks & Mitigations](./docs/research/08-risks-mitigations.md) | Key risks ranked by impact with mitigation strategies |
+| [Test Suite](./testrun.md) | Test pipeline docs: commands, architecture, file inventory, coverage targets |
 
 ## Key Numbers
 
@@ -48,6 +49,7 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 - **Auth:** Stub JWT with bcrypt (local)
 - **Storage:** Local file uploads (stub)
 - **Monorepo:** pnpm workspaces
+- **Testing:** Jest + @nestjs/testing (API), Vitest + Testing Library + MSW (Web)
 
 ### Planned (Production)
 
@@ -98,6 +100,11 @@ pnpm dev
 | `pnpm db:migrate` | Run database migrations |
 | `pnpm db:seed` | Seed database with sample data |
 | `pnpm db:studio` | Open Prisma Studio |
+| `pnpm test` | Run all tests (API + Web + Shared) |
+| `pnpm test:api` | Run backend tests (Jest) |
+| `pnpm test:web` | Run frontend tests (Vitest) |
+| `pnpm test:shared` | Run shared package tests (Vitest) |
+| `pnpm test:coverage` | Run all tests with coverage |
 
 ### Seeded Credentials
 
@@ -124,4 +131,4 @@ Swagger UI available at `http://localhost:3001/api/docs` when the API is running
 
 ## Status
 
-🟢 Scaffold complete — Backend API + Web Dashboard skeleton ready for feature development.
+🟢 Scaffold complete — Backend API + Web Dashboard with 184 passing unit tests (26 suites) across all packages.
