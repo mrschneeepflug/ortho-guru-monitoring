@@ -3,13 +3,19 @@
 ## Quick Start
 
 ```bash
-# Run all tests
+# Run all unit tests
 pnpm test
 
 # Run by package
-pnpm test:api      # Backend (Jest)
+pnpm test:api      # Backend unit tests (Jest)
 pnpm test:web      # Frontend (Vitest)
 pnpm test:shared   # Shared types/constants (Vitest)
+
+# E2E integration tests (requires Docker PostgreSQL)
+pnpm test:e2e
+
+# Run a specific E2E suite
+pnpm --filter api test:e2e -- --testPathPattern=auth
 
 # Watch mode
 pnpm --filter api test:watch
@@ -24,12 +30,13 @@ pnpm test:coverage
 | Layer | Framework | Config | Test pattern |
 |-------|-----------|--------|--------------|
 | Backend (NestJS) | Jest + ts-jest + @nestjs/testing | `apps/api/jest.config.js` | `*.spec.ts` (co-located) |
+| Backend E2E | Jest + ts-jest + supertest + real PostgreSQL | `apps/api/jest-e2e.config.js` | `test/*.e2e-spec.ts` |
 | Frontend (Next.js) | Vitest + @testing-library/react + MSW | `apps/web/vitest.config.ts` | `__tests__/*.test.ts(x)` |
 | Shared | Vitest | `packages/shared/vitest.config.ts` | `__tests__/*.test.ts` |
 
 ### Backend Strategy
 - **Prisma mock factory** (`apps/api/src/test/prisma-mock.factory.ts`) — creates mock PrismaService with all 9 models, each having `findMany`/`findFirst`/`findUnique`/`create`/`update`/`delete`/`count` as `jest.fn()`. `$transaction` supports both array and callback forms.
-- **`jest.mock('bcrypt')`** — skips real hashing for fast auth tests.
+- **`jest.mock('bcryptjs')`** — skips real hashing for fast unit tests.
 - **`jest.useFakeTimers()`** — freezes time for date-dependent compliance tests.
 - No real database required — all tests are isolated unit tests.
 
@@ -96,6 +103,38 @@ pnpm test:coverage
 | `components/patients/__tests__/patient-form.test.tsx` | 6 | Empty→undefined coercion, parseInt, submit callback, loading state |
 | `components/patients/__tests__/patient-table.test.tsx` | 8 | Pagination calc, button disable states, loading skeleton, null handling |
 
+### Backend E2E — 9 test suites (72 tests)
+
+Tests hit the real NestJS app via supertest with a real PostgreSQL database (`orthomonitor_test`).
+
+| File | Tests | What it covers |
+|------|-------|----------------|
+| `test/auth.e2e-spec.ts` | 10 | Register (success, duplicate 409, missing fields, invalid email, short password), login (success, wrong password, unknown email), auth guard (no token 401, valid token 200) |
+| `test/patients.e2e-spec.ts` | 12 | CRUD, pagination, status filter, case-insensitive search, 404 on nonexistent, missing fields 400, practice isolation |
+| `test/scans.e2e-spec.ts` | 10 | Create session (PENDING status), patient-not-in-practice 404, missing patientId 400, list/filter/detail, REVIEWED sets reviewedAt, FLAGGED does NOT set reviewedAt |
+| `test/tagging.e2e-spec.ts` | 8 | Create tag set (session becomes REVIEWED), cross-practice 403, nonexistent 404, get tags, cross-practice tags 404, analytics (rate + discount), zero-state analytics |
+| `test/messaging.e2e-spec.ts` | 10 | Create thread, patient-not-in-practice 404, list threads (lastMessage + unreadCount), thread detail with messages, send message, thread-not-in-practice 404, mark as read, cross-practice 404 |
+| `test/dashboard.e2e-spec.ts` | 8 | Summary (pendingScans, totalPatients, compliancePercentage, taggingRate), values reflect DB state, feed sorted desc, feed includes all 3 types, compliance stats, overdue patients with daysSinceLastScan |
+| `test/practices.e2e-spec.ts` | 6 | ADMIN sees all, DOCTOR sees own, get practice details, cross-practice 403, update own, cross-practice update 403 |
+| `test/multi-tenancy.e2e-spec.ts` | 7 | Practice isolation: each practice sees only its own patients, cross-practice patient access 404, cross-practice patient update 404, cross-practice scan 404, cross-practice thread 404, cross-practice scan creation 404 |
+| `test/validation.e2e-spec.ts` | 6 | Reject unknown fields (forbidNonWhitelisted), wrong types 400, empty body 400, out-of-range values 400, error response shape (statusCode + message + timestamp), duplicate email 409 |
+
+#### E2E Test Infrastructure
+
+| File | Purpose |
+|------|---------|
+| `apps/api/jest-e2e.config.js` | Separate Jest config: `test/` root, `*.e2e-spec.ts` pattern, 30s timeout, global setup/teardown |
+| `apps/api/test/setup.ts` | Global setup: creates `orthomonitor_test` DB via Docker, pushes Prisma schema, seeds baseline (1 practice + 2 doctors) |
+| `apps/api/test/teardown.ts` | Global teardown: drops `orthomonitor_test` database |
+| `apps/api/test/app.factory.ts` | Creates real NestJS test app with all modules, same config as `main.ts` (prefix, validation pipe) |
+| `apps/api/test/helpers.ts` | `loginAs(app, email)` → JWT token; `resetDb(prisma)` → truncates all tables except baseline; `BASELINE` constants |
+
+#### E2E Prerequisites
+
+- **Docker** running with PostgreSQL container (`docker-compose up -d postgres`)
+- Tests create and drop `orthomonitor_test` database automatically
+- No manual DB setup needed — the global setup handles everything
+
 ### Shared — 1 test suite (11 tests)
 
 | File | Tests | What it covers |
@@ -117,7 +156,12 @@ pnpm test:coverage
 
 | File | Purpose |
 |------|---------|
-| `apps/api/jest.config.js` | Jest config: ts-jest, node env, `@/*` alias, coverage patterns |
+| `apps/api/jest.config.js` | Unit test Jest config: ts-jest, node env, `@/*` alias, coverage patterns |
+| `apps/api/jest-e2e.config.js` | E2E Jest config: real DB, global setup/teardown, 30s timeout |
+| `apps/api/test/setup.ts` | E2E global setup: create DB, push schema, seed baseline |
+| `apps/api/test/teardown.ts` | E2E global teardown: drop test database |
+| `apps/api/test/app.factory.ts` | E2E app factory: creates real NestJS app for supertest |
+| `apps/api/test/helpers.ts` | E2E helpers: `loginAs()`, `resetDb()`, baseline constants |
 | `apps/api/src/test/prisma-mock.factory.ts` | Factory for mock PrismaService with all 9 models |
 | `apps/web/vitest.config.ts` | Vitest config: jsdom, react plugin, `@` alias |
 | `apps/web/src/test/setup.ts` | jest-dom matchers + cleanup |
@@ -128,7 +172,7 @@ pnpm test:coverage
 
 ## Summary
 
-- **26 test suites** across 3 packages
-- **184 passing tests** (117 backend + 56 frontend + 11 shared)
-- **Unit tests only** — no E2E (those require a real database)
-- **No real I/O** — all external dependencies (Prisma, APIs, localStorage) are mocked
+- **35 test suites** across 3 packages
+- **256 passing tests** (117 backend unit + 72 backend E2E + 56 frontend + 11 shared)
+- **Unit tests** — fast, no real I/O, all external dependencies mocked
+- **E2E tests** — full request→database→response chain with real PostgreSQL, verifies validation pipes, guard ordering, interceptor wrapping, Prisma query correctness, and multi-tenant isolation

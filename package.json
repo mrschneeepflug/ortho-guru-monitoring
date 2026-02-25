@@ -19,6 +19,7 @@
     "test:api": "pnpm --filter api test",
     "test:web": "pnpm --filter web test",
     "test:shared": "pnpm --filter shared test",
+    "test:e2e": "pnpm --filter api test:e2e",
     "test:coverage": "pnpm --parallel -r test:coverage",
     "clean": "pnpm --parallel -r clean"
   },
