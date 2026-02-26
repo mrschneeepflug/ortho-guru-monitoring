@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { DoctorRole } from '@prisma/client';
@@ -8,7 +8,6 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 
-// TODO: Replace with Auth0 integration
 @Injectable()
 export class AuthService {
   private readonly SALT_ROUNDS = 10;
@@ -29,7 +28,6 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
-    // TODO: Admin creation should be done through a protected admin endpoint
     const doctor = await this.prisma.doctor.create({
       data: {
         name: dto.name,
@@ -63,6 +61,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!doctor.passwordHash) {
+      throw new UnauthorizedException('This account uses Auth0. Please sign in with Auth0.');
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.password, doctor.passwordHash);
 
     if (!isPasswordValid) {
@@ -81,6 +83,86 @@ export class AuthService {
         practiceId: doctor.practiceId,
       },
     };
+  }
+
+  async getMe(doctorId: string) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { id: doctorId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        practiceId: true,
+        auth0Id: true,
+      },
+    });
+
+    if (!doctor) {
+      throw new NotFoundException('Doctor not found');
+    }
+
+    return doctor;
+  }
+
+  async findOrCreateAuth0User(
+    auth0Sub: string,
+    email: string,
+    name: string,
+  ) {
+    // 1. Try find by auth0Id
+    let doctor = await this.prisma.doctor.findUnique({
+      where: { auth0Id: auth0Sub },
+    });
+
+    if (doctor) {
+      return doctor;
+    }
+
+    // 2. Try find by email and link auth0Id
+    if (email) {
+      doctor = await this.prisma.doctor.findUnique({
+        where: { email },
+      });
+
+      if (doctor) {
+        return this.prisma.doctor.update({
+          where: { id: doctor.id },
+          data: { auth0Id: auth0Sub },
+        });
+      }
+    }
+
+    // 3. Create new doctor — needs a practice
+    const defaultPracticeId = process.env.AUTH0_DEFAULT_PRACTICE_ID;
+
+    let practiceId: string;
+    if (defaultPracticeId) {
+      practiceId = defaultPracticeId;
+    } else {
+      // Find or create a default practice for Auth0 users
+      let defaultPractice = await this.prisma.practice.findFirst({
+        where: { name: 'Default Practice' },
+      });
+
+      if (!defaultPractice) {
+        defaultPractice = await this.prisma.practice.create({
+          data: { name: 'Default Practice' },
+        });
+      }
+
+      practiceId = defaultPractice.id;
+    }
+
+    return this.prisma.doctor.create({
+      data: {
+        auth0Id: auth0Sub,
+        email: email || `${auth0Sub}@auth0.local`,
+        name: name || 'Auth0 User',
+        role: DoctorRole.DOCTOR,
+        practiceId,
+      },
+    });
   }
 
   generateToken(doctor: { id: string; email: string; role: string; practiceId: string }): string {

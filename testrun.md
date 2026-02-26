@@ -50,14 +50,14 @@ pnpm test:coverage
 
 ## Test File Inventory
 
-### Backend — 16 test suites (117 tests)
+### Backend — 16 test suites (125 tests)
 
 #### Critical (Guards, Auth, Core Business Logic)
 | File | Tests | What it covers |
 |------|-------|----------------|
 | `tagging/tagging-analytics.service.spec.ts` | 8 | `calculateDiscountTier` boundary cases (0%, 49.99%, 50%, 69%, 70%, 84%, 85%, 100%), `getTaggingRate`, `getAnalytics` |
 | `dashboard/dashboard.service.spec.ts` | 10 | Compliance % (on-time/overdue/mixed/no-patients), feed merge+sort, tagging rate, summary |
-| `auth/auth.service.spec.ts` | 7 | Register (hash+JWT), login (verify), invalid creds, ConflictException, generateToken |
+| `auth/auth.service.spec.ts` | 15 | Register (hash+JWT), login (verify, Auth0-only guard), invalid creds, ConflictException, generateToken, getMe (success, not found), findOrCreateAuth0User (by auth0Id, link by email, create new, default practice creation, env practice ID) |
 | `common/guards/jwt-auth.guard.spec.ts` | 3 | @Public bypass, delegates to super, metadata check |
 | `common/guards/roles.guard.spec.ts` | 5 | No roles→allow, null user→deny, role match/mismatch |
 | `common/guards/practice-isolation.guard.spec.ts` | 6 | Injects practiceId, cross-tenant ForbiddenException, unauthenticated pass-through |
@@ -173,6 +173,6 @@ Tests hit the real NestJS app via supertest with a real PostgreSQL database (`or
 ## Summary
 
 - **35 test suites** across 3 packages
-- **256 passing tests** (117 backend unit + 72 backend E2E + 56 frontend + 11 shared)
+- **264 passing tests** (125 backend unit + 72 backend E2E + 56 frontend + 11 shared)
 - **Unit tests** — fast, no real I/O, all external dependencies mocked
 - **E2E tests** — full request→database→response chain with real PostgreSQL, verifies validation pipes, guard ordering, interceptor wrapping, Prisma query correctness, and multi-tenant isolation

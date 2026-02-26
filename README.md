@@ -46,7 +46,7 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 - **API:** Node.js + NestJS (Swagger auto-docs)
 - **Database:** PostgreSQL 16 (Docker) + Prisma ORM
 - **Cache:** Redis 7 (Docker)
-- **Auth:** Stub JWT with bcrypt (local)
+- **Auth:** Dual-mode JWT — local bcrypt+HS256 (default) with optional Auth0 RS256 via JWKS (set `AUTH0_DOMAIN` to enable)
 - **Storage:** Local file uploads (stub)
 - **Monorepo:** pnpm workspaces
 - **Testing:** Jest + @nestjs/testing (API), Vitest + Testing Library + MSW (Web)
@@ -56,7 +56,7 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 - **Mobile:** React Native + Expo
 - **Database:** AWS RDS (PostgreSQL 16)
 - **Storage:** AWS S3 (encrypted)
-- **Auth:** Auth0 (HIPAA BAA)
+- **Auth:** Auth0 tenant credentials (framework ready, plug in Auth0 domain/clientId)
 - **Infrastructure:** AWS ECS Fargate, Terraform
 
 ## Development Setup
@@ -129,6 +129,24 @@ ortho-guru-monitoring/
 
 Swagger UI available at `http://localhost:3001/api/docs` when the API is running.
 
+### Auth0 SSO (Optional)
+
+Auth0 integration is built in but disabled by default. To enable, add these to your `.env`:
+
+```env
+AUTH0_DOMAIN="your-tenant.auth0.com"
+AUTH0_AUDIENCE="https://api.orthomonitor.dev"
+AUTH0_DEFAULT_PRACTICE_ID=""              # optional, auto-creates "Default Practice" if unset
+NEXT_PUBLIC_AUTH0_DOMAIN="your-tenant.auth0.com"
+NEXT_PUBLIC_AUTH0_CLIENT_ID="your-client-id"
+NEXT_PUBLIC_AUTH0_AUDIENCE="https://api.orthomonitor.dev"
+```
+
+When enabled:
+- Login page shows a "Sign in with Auth0" button alongside the existing email/password form
+- Auth0 users are auto-created as Doctor records on first login (linked by email or Auth0 sub)
+- Local email/password login continues to work in parallel
+
 ## Status
 
-🟢 Scaffold complete — Backend API + Web Dashboard with 184 passing unit tests (26 suites) across all packages.
+🟢 Scaffold complete — Backend API + Web Dashboard with 125 passing backend unit tests (16 suites), 56 frontend unit tests (9 suites), and 11 shared tests (1 suite) across all packages.

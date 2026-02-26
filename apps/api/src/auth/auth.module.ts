@@ -5,7 +5,6 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
-// TODO: Replace with Auth0 integration
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),

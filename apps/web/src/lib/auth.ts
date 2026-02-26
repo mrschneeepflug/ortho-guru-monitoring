@@ -41,6 +41,11 @@ export function getUser(): AuthUser | null {
   return raw ? JSON.parse(raw) : null;
 }
 
+export function setAuth(token: string, user: AuthUser) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
