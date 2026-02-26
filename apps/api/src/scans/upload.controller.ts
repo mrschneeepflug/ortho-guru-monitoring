@@ -1,7 +1,9 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
+  Param,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -10,6 +12,7 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
@@ -20,18 +23,18 @@ import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { UploadService } from './upload.service';
 import { UploadUrlRequestDto } from './dto/upload-url-request.dto';
 import { UploadUrlResponseDto } from './dto/upload-url-response.dto';
+import { ConfirmUploadDto } from './dto/confirm-upload.dto';
 
 @ApiTags('scans')
 @ApiBearerAuth()
-@Controller('scans/upload')
+@Controller('scans')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   /**
-   * Generate a presigned upload URL stub.
-   * TODO: Replace with S3 integration
+   * Generate a presigned upload URL for direct-to-storage upload.
    */
-  @Post('upload-url')
+  @Post('upload/upload-url')
   @ApiOperation({ summary: 'Get a presigned upload URL for a scan image' })
   @ApiCreatedResponse({ type: UploadUrlResponseDto })
   getUploadUrl(
@@ -42,11 +45,29 @@ export class UploadController {
   }
 
   /**
-   * Handle a local file upload via Multer.
-   * TODO: Replace with S3 integration
+   * Confirm that a direct-to-storage upload completed.
+   * Creates the ScanImage record.
    */
-  @Post()
-  @ApiOperation({ summary: 'Upload a scan image file (local storage)' })
+  @Post('upload/confirm')
+  @ApiOperation({ summary: 'Confirm a completed direct-to-storage upload' })
+  @ApiCreatedResponse({ description: 'ScanImage record created' })
+  confirmUpload(
+    @Body() dto: ConfirmUploadDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.uploadService.confirmUpload(
+      dto.sessionId,
+      dto.imageType,
+      dto.key,
+      user.practiceId,
+    );
+  }
+
+  /**
+   * Handle a local file upload via Multer (fallback when OCI is not configured).
+   */
+  @Post('upload')
+  @ApiOperation({ summary: 'Upload a scan image file (multipart)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -67,5 +88,18 @@ export class UploadController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.uploadService.handleLocalUpload(sessionId, imageType, file, user.practiceId);
+  }
+
+  /**
+   * Get a pre-signed download URL for viewing a scan image.
+   */
+  @Get('images/:id/url')
+  @ApiOperation({ summary: 'Get a pre-signed download URL for a scan image' })
+  @ApiOkResponse({ description: 'Pre-signed download URL' })
+  getImageDownloadUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.uploadService.getImageUrl(id, user.practiceId);
   }
 }
