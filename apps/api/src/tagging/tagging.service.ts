@@ -2,13 +2,20 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  NotImplementedException,
 } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { AiService, AiTagSuggestion } from '../common/ai/ai.service';
+import { StorageService } from '../common/storage/storage.service';
 import { CreateTagSetDto } from './dto/create-tag-set.dto';
 
 @Injectable()
 export class TaggingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+    private readonly storageService: StorageService,
+  ) {}
 
   async createTagSet(
     sessionId: string,
@@ -98,5 +105,47 @@ export class TaggingService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async suggestTags(
+    sessionId: string,
+    practiceId: string,
+  ): Promise<AiTagSuggestion> {
+    if (!this.aiService.isEnabled()) {
+      throw new NotImplementedException('AI suggestions are not configured');
+    }
+
+    const session = await this.prisma.scanSession.findUnique({
+      where: { id: sessionId },
+      include: { patient: true, images: true },
+    });
+
+    if (!session) {
+      throw new NotFoundException(
+        `Scan session with ID "${sessionId}" not found`,
+      );
+    }
+
+    if (session.patient.practiceId !== practiceId) {
+      throw new ForbiddenException(
+        'You do not have access to this scan session',
+      );
+    }
+
+    const imagesWithKeys = session.images.filter((img) => img.s3Key);
+    if (imagesWithKeys.length === 0) {
+      throw new NotFoundException(
+        'No images available for AI analysis in this session',
+      );
+    }
+
+    const imageBuffers = await Promise.all(
+      imagesWithKeys.map(async (img) => ({
+        mediaType: 'image/jpeg',
+        buffer: await this.storageService.getObject(img.s3Key!),
+      })),
+    );
+
+    return this.aiService.analyzeScanImages(imageBuffers);
   }
 }

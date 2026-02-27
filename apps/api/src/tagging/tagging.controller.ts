@@ -12,6 +12,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { CreateTagSetDto } from './dto/create-tag-set.dto';
 import { TagAnalyticsResponseDto } from './dto/tag-analytics-response.dto';
+import { AiSuggestionResponseDto } from './dto/ai-suggestion-response.dto';
 
 @ApiTags('tagging')
 @ApiBearerAuth()
@@ -42,6 +43,14 @@ export class TaggingController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.taggingService.findBySession(sessionId, user.practiceId);
+  }
+
+  @Post('sessions/:sessionId/suggest')
+  suggestTags(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<AiSuggestionResponseDto> {
+    return this.taggingService.suggestTags(sessionId, user.practiceId);
   }
 
   @Get('analytics')

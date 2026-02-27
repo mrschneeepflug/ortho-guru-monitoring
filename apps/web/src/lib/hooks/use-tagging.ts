@@ -29,6 +29,27 @@ export function useSubmitTags() {
   });
 }
 
+export interface AiSuggestion {
+  overallTracking: number;
+  alignerFit: number;
+  oralHygiene: number;
+  detailTags: string[];
+  actionTaken: string | null;
+  notes: string | null;
+  confidence: number;
+}
+
+export function useAiSuggest() {
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const { data } = await apiClient.post<ApiResponse<AiSuggestion>>(
+        `/tagging/sessions/${sessionId}/suggest`,
+      );
+      return data.data;
+    },
+  });
+}
+
 export function useTagAnalytics() {
   return useQuery({
     queryKey: ['tagging', 'analytics'],
