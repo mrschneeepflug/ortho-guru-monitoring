@@ -87,7 +87,7 @@ NODE_ENV=production node dist/main.js
 ### Web (Doctor Dashboard)
 ```bash
 cd apps/web
-NODE_ENV=production npx next start -p 3000
+NODE_ENV=production npx next start -p 3001
 ```
 
 ### Patient Portal
@@ -137,7 +137,7 @@ WORKDIR /app
 COPY apps/api/dist ./dist
 COPY apps/api/node_modules ./node_modules
 COPY apps/api/prisma ./prisma
-EXPOSE 3001
+EXPOSE 8085
 CMD ["node", "dist/main.js"]
 ```
 

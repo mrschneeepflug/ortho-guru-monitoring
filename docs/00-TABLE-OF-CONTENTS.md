@@ -81,5 +81,5 @@
 | Database models | 10 (Practice, Doctor, Patient, PatientInvite, ScanSession, ScanImage, TagSet, MessageThread, Message, AuditLog) |
 | Test files | 28 |
 | Test cases | ~150+ |
-| Frontend apps | 2 (Doctor Dashboard on port 3000, Patient Portal on port 3002) |
+| Frontend apps | 2 (Doctor Dashboard on port 3001, Patient Portal on port 3002) |
 | Shared packages | 1 (packages/shared) |

@@ -1,7 +1,7 @@
 # Backend API Reference
 
-**Base URL:** `http://localhost:3001/api/v1`
-**Swagger:** `http://localhost:3001/api/docs`
+**Base URL:** `http://localhost:8085/api/v1`
+**Swagger:** `http://localhost:8085/api/docs`
 
 ## Global Conventions
 

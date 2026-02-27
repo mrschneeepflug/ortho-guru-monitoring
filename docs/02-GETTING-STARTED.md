@@ -70,18 +70,18 @@ npx pnpm --filter shared build
 npx pnpm dev
 
 # Or start individually:
-npx pnpm dev:api      # API on port 3001
-npx pnpm dev:web      # Doctor Dashboard on port 3000
+npx pnpm dev:api      # API on port 8085
+npx pnpm dev:web      # Doctor Dashboard on port 3001
 npx pnpm dev:patient  # Patient Portal on port 3002
 ```
 
 ## Verifying the Setup
 
 ### Swagger UI
-Open `http://localhost:3001/api/docs` — you should see the full API documentation.
+Open `http://localhost:8085/api/docs` — you should see the full API documentation.
 
 ### Doctor Login
-1. Open `http://localhost:3000`
+1. Open `http://localhost:3001`
 2. Login with: `admin@orthomonitor.dev` / `password123`
 3. You should see the dashboard with sample data.
 
@@ -147,4 +147,4 @@ All scripts are run from the repository root using `npx pnpm <script>`.
 **Fix:** Wait for PostgreSQL healthcheck to pass: `docker compose ps` should show "healthy".
 
 ### Frontend shows "Network Error"
-**Fix:** Ensure the API server is running on port 3001. Both frontends proxy API requests via Next.js rewrites.
+**Fix:** Ensure the API server is running on port 8085. Both frontends proxy API requests via Next.js rewrites.

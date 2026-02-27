@@ -228,7 +228,7 @@ Key constants:
 
 **Next.js config** (`apps/patient/next.config.js`):
 - PWA via `next-pwa` (disabled in dev)
-- API rewrites: `/api/v1/*` → `http://localhost:3001/api/v1/*`
+- API rewrites: `/api/v1/*` → `http://localhost:8085/api/v1/*`
 
 **Dependencies:** Next.js 14.1, React 18, React Query 5.17, Axios, Tailwind CSS, lucide-react, date-fns
 

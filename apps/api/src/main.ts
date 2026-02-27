@@ -11,7 +11,7 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3002').split(','),
+    origin: (process.env.CORS_ORIGIN || 'http://localhost:3001,http://localhost:3002').split(','),
     credentials: true,
   });
 
@@ -37,7 +37,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 8085;
   await app.listen(port);
   console.log(`OrthoMonitor API running on http://localhost:${port}`);
   console.log(`Swagger docs at http://localhost:${port}/api/docs`);

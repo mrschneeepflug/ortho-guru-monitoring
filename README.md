@@ -87,7 +87,7 @@ pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 
-# 5. Start dev servers (API :3001, Web :3000, Patient :3002)
+# 5. Start dev servers (API :8085, Web :3001, Patient :3002)
 pnpm dev
 ```
 
@@ -96,8 +96,8 @@ pnpm dev
 | Command | Description |
 |---------|-------------|
 | `pnpm dev` | Start API + Web + Patient in parallel |
-| `pnpm dev:api` | Start API only (port 3001) |
-| `pnpm dev:web` | Start Doctor Dashboard only (port 3000) |
+| `pnpm dev:api` | Start API only (port 8085) |
+| `pnpm dev:web` | Start Doctor Dashboard only (port 3001) |
 | `pnpm dev:patient` | Start Patient Portal only (port 3002) |
 | `pnpm build` | Build all packages |
 | `pnpm build:api` | Build API |
@@ -126,7 +126,7 @@ pnpm dev
 ```
 ortho-guru-monitoring/
 ├── apps/
-│   ├── api/            # NestJS backend (port 3001)
+│   ├── api/            # NestJS backend (port 8085)
 │   │   ├── prisma/     #   Schema, migrations, seed
 │   │   └── src/
 │   │       ├── auth/           # Doctor auth (local + Auth0)
@@ -145,7 +145,7 @@ ortho-guru-monitoring/
 │   │       ├── components/     # UI, layout, scan wizard, messages
 │   │       ├── lib/            # API client, hooks, types, utils
 │   │       └── providers/      # Auth + React Query providers
-│   └── web/            # Next.js Doctor Dashboard (port 3000)
+│   └── web/            # Next.js Doctor Dashboard (port 3001)
 │       └── src/
 │           ├── app/            # Pages (dashboard, patients, scans, messages, settings)
 │           ├── components/     # UI, layout, scan viewer, tagging panel
@@ -158,7 +158,7 @@ ortho-guru-monitoring/
 
 ### API Documentation
 
-Swagger UI available at `http://localhost:3001/api/docs` when the API is running.
+Swagger UI available at `http://localhost:8085/api/docs` when the API is running.
 
 ### Key API Endpoints
 

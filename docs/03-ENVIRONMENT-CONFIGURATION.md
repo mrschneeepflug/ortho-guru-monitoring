@@ -8,11 +8,11 @@ All environment variables are configured in `apps/api/.env`. Copy from `.env.exa
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `3001` | API server port |
+| `PORT` | `8085` | API server port |
 | `DATABASE_URL` | `postgresql://ortho:ortho_secret@localhost:5432/orthomonitor?schema=public` | PostgreSQL connection string |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
 | `JWT_SECRET` | `dev-jwt-secret-change-in-production` | Secret for signing HS256 JWT tokens |
-| `CORS_ORIGIN` | `http://localhost:3000,http://localhost:3002` | Comma-separated allowed origins |
+| `CORS_ORIGIN` | `http://localhost:3001,http://localhost:3002` | Comma-separated allowed origins |
 
 ### Auth0 (Optional — enables dual-mode authentication)
 
@@ -51,15 +51,15 @@ When set, enables the "Get AI Suggestion" feature in the tagging panel. Uses `cl
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001/api/v1` | API base URL for frontend apps |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8085/api/v1` | API base URL for frontend apps |
 | `PATIENT_PORTAL_URL` | `http://localhost:3002` | Base URL for patient invite links |
 
 ## Full `.env.example`
 
 ```env
 # Server
-PORT=3001
-CORS_ORIGIN="http://localhost:3000,http://localhost:3002"
+PORT=8085
+CORS_ORIGIN="http://localhost:3001,http://localhost:3002"
 
 # Database
 DATABASE_URL="postgresql://ortho:ortho_secret@localhost:5432/orthomonitor?schema=public"
@@ -92,7 +92,7 @@ JWT_SECRET="dev-jwt-secret-change-in-production"
 PATIENT_PORTAL_URL="http://localhost:3002"
 
 # Frontend
-NEXT_PUBLIC_API_URL="http://localhost:3001/api/v1"
+NEXT_PUBLIC_API_URL="http://localhost:8085/api/v1"
 ```
 
 ## Docker Compose Configuration

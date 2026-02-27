@@ -6,7 +6,7 @@
 ┌─────────────────┐     ┌─────────────────┐
 │  Doctor Dashboard│     │  Patient Portal  │
 │  (Next.js 14)   │     │  (Next.js 14)    │
-│  Port 3000      │     │  Port 3002       │
+│  Port 3001      │     │  Port 3002       │
 └────────┬────────┘     └────────┬─────────┘
          │                       │
          │    HTTP / REST API    │
@@ -14,7 +14,7 @@
                     │
          ┌──────────▼──────────┐
          │    NestJS API        │
-         │    Port 3001         │
+         │    Port 8085         │
          │    /api/v1/...       │
          │    Swagger: /api/docs│
          └──┬────┬────┬────┬───┘
@@ -35,8 +35,8 @@
 ```
 ortho-guru-monitoring/
 ├── apps/
-│   ├── api/           # NestJS backend (Port 3001)
-│   ├── web/           # Doctor dashboard - Next.js 14 (Port 3000)
+│   ├── api/           # NestJS backend (Port 8085)
+│   ├── web/           # Doctor dashboard - Next.js 14 (Port 3001)
 │   └── patient/       # Patient portal - Next.js 14 PWA (Port 3002)
 ├── packages/
 │   └── shared/        # Shared TypeScript types & constants
@@ -82,12 +82,12 @@ ortho-guru-monitoring/
 
 | Service | Port | URL |
 |---------|------|-----|
-| Doctor Dashboard (web) | 3000 | `http://localhost:3000` |
-| NestJS API | 3001 | `http://localhost:3001/api/v1` |
+| Doctor Dashboard (web) | 3001 | `http://localhost:3001` |
+| NestJS API | 8085 | `http://localhost:8085/api/v1` |
 | Patient Portal | 3002 | `http://localhost:3002` |
 | PostgreSQL | 5432 | `postgresql://ortho:ortho_secret@localhost:5432/orthomonitor` |
 | Redis | 6379 | `redis://localhost:6379` |
-| Swagger Docs | 3001 | `http://localhost:3001/api/docs` |
+| Swagger Docs | 8085 | `http://localhost:8085/api/docs` |
 
 ## Multi-Tenancy Model
 
@@ -148,7 +148,7 @@ Request
 - **Global prefix:** `/api/v1`
 - **Swagger:** Available at `/api/docs` (OpenAPI 3.0)
 - **Validation:** Global `ValidationPipe` with `whitelist: true` and `transform: true`
-- **CORS:** Configurable via `CORS_ORIGIN` env var (default: `http://localhost:3000,http://localhost:3002`)
+- **CORS:** Configurable via `CORS_ORIGIN` env var (default: `http://localhost:3001,http://localhost:3002`)
 
 ## Response Format
 

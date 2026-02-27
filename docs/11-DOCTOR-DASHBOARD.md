@@ -1,7 +1,7 @@
 # Doctor Dashboard (apps/web)
 
 **Framework:** Next.js 14 (App Router)
-**Port:** 3000
+**Port:** 3001
 **Path:** `apps/web/`
 
 ## Architecture
@@ -190,6 +190,6 @@ All hooks are in `apps/web/src/lib/hooks/`.
 
 **Next.js config** (`apps/web/next.config.js`):
 - PWA via `next-pwa` (disabled in dev)
-- API rewrites: `/api/v1/*` → `http://localhost:3001/api/v1/*`
+- API rewrites: `/api/v1/*` → `http://localhost:8085/api/v1/*`
 
 **Dependencies:** Next.js 14.1, React 18, React Query 5.17, Axios, @auth0/auth0-react (optional), Tailwind CSS, lucide-react, date-fns
