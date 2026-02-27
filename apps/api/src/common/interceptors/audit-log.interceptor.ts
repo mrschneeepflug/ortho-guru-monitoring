@@ -40,7 +40,7 @@ export class AuditLogInterceptor implements NestInterceptor {
           await this.prisma.auditLog.create({
             data: {
               userId: user.sub,
-              userRole: user.role,
+              userRole: user.role || 'PATIENT',
               action: `${method} ${request.route?.path || request.url}`,
               resourceType,
               resourceId,

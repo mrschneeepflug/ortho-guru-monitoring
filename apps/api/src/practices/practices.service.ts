@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../common/prisma/prisma.service';
-import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { JwtPayload, isDoctorPayload } from '../common/interfaces/jwt-payload.interface';
 import { CreatePracticeDto } from './dto/create-practice.dto';
 import { UpdatePracticeDto } from './dto/update-practice.dto';
 
@@ -13,7 +13,7 @@ export class PracticesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(user: JwtPayload) {
-    if (user.role === 'ADMIN') {
+    if (isDoctorPayload(user) && user.role === 'ADMIN') {
       return this.prisma.practice.findMany({
         orderBy: { createdAt: 'desc' },
       });

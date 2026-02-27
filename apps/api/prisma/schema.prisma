@@ -93,6 +93,8 @@ model Patient {
   practiceId     String
   doctorId       String
   name           String
+  email          String?       @unique
+  passwordHash   String?
   dateOfBirth    DateTime?
   treatmentType  String?
   alignerBrand   String?
@@ -107,10 +109,28 @@ model Patient {
   doctor         Doctor          @relation(fields: [doctorId], references: [id])
   scanSessions   ScanSession[]
   messageThreads MessageThread[]
+  invites        PatientInvite[]
 
   @@index([practiceId])
   @@index([doctorId])
   @@map("patients")
+}
+
+// ─── Patient Invite ────────────────────────────────────
+
+model PatientInvite {
+  id        String    @id @default(cuid())
+  patientId String
+  token     String    @unique
+  email     String?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  patient   Patient   @relation(fields: [patientId], references: [id])
+
+  @@index([token])
+  @@map("patient_invites")
 }
 
 // ─── Scan Session ────────────────────────────────────────

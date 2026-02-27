@@ -171,6 +171,7 @@ export class AuthService {
       email: doctor.email,
       role: doctor.role,
       practiceId: doctor.practiceId,
+      type: 'doctor',
     };
 
     return this.jwtService.sign(payload);

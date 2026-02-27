@@ -9,6 +9,8 @@ import { ScansModule } from './scans/scans.module';
 import { TaggingModule } from './tagging/tagging.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PatientAuthModule } from './patient-auth/patient-auth.module';
+import { PatientPortalModule } from './patient-portal/patient-portal.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TaggingModule,
     MessagingModule,
     DashboardModule,
+    PatientAuthModule,
+    PatientPortalModule,
   ],
 })
 export class AppModule {}

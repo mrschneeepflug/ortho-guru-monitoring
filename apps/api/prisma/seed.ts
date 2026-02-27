@@ -65,12 +65,16 @@ async function main() {
   console.log(`  Doctor (DOCTOR): ${drWilson.name} (${drWilson.id})`);
 
   // ─── Patients ──────────────────────────────────────────
+  const patientPasswordHash = await bcrypt.hash('patient123', 10);
+
   const patientData = [
     {
       id: 'seed-patient-001',
       practiceId: practice.id,
       doctorId: drChen.id,
       name: 'Alice Johnson',
+      email: 'alice@example.com',
+      passwordHash: patientPasswordHash,
       dateOfBirth: new Date('1998-03-15'),
       treatmentType: 'Invisalign',
       alignerBrand: 'Invisalign',
@@ -140,6 +144,8 @@ async function main() {
       update: {
         name: p.name,
         doctorId: p.doctorId,
+        email: (p as Record<string, unknown>).email as string | undefined,
+        passwordHash: (p as Record<string, unknown>).passwordHash as string | undefined,
         treatmentType: p.treatmentType,
         alignerBrand: p.alignerBrand,
         currentStage: p.currentStage,
@@ -280,6 +286,7 @@ async function main() {
   });
   console.log(`  Message (PATIENT): ${msgPatient.id}`);
 
+  console.log(`\n  Patient login: alice@example.com / patient123`);
   console.log('\nSeed complete.');
 }
 

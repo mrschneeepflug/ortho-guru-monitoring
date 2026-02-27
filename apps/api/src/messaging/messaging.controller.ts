@@ -61,7 +61,8 @@ export class MessagingController {
     @Body() dto: CreateMessageDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.messagingService.sendMessage(dto, user.sub, user.role, user.practiceId);
+    const role = 'role' in user ? user.role : 'PATIENT';
+    return this.messagingService.sendMessage(dto, user.sub, role, user.practiceId);
   }
 
   @Patch('messages/:id/read')

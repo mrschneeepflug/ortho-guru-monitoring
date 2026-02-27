@@ -25,7 +25,7 @@ describe('PracticesService', () => {
       const practices = [{ id: 'p1' }, { id: 'p2' }];
       prisma.practice.findMany.mockResolvedValueOnce(practices);
 
-      const result = await service.findAll({ sub: 'u1', email: 'a@b.com', role: 'ADMIN', practiceId: 'p1' });
+      const result = await service.findAll({ sub: 'u1', email: 'a@b.com', role: 'ADMIN', practiceId: 'p1', type: 'doctor' as const });
 
       expect(result).toEqual(practices);
       expect(prisma.practice.findMany).toHaveBeenCalledWith({ orderBy: { createdAt: 'desc' } });
@@ -34,7 +34,7 @@ describe('PracticesService', () => {
     it('should return only own practice for non-ADMIN', async () => {
       prisma.practice.findMany.mockResolvedValueOnce([{ id: 'p1' }]);
 
-      await service.findAll({ sub: 'u1', email: 'a@b.com', role: 'DOCTOR', practiceId: 'p1' });
+      await service.findAll({ sub: 'u1', email: 'a@b.com', role: 'DOCTOR', practiceId: 'p1', type: 'doctor' as const });
 
       expect(prisma.practice.findMany).toHaveBeenCalledWith({ where: { id: 'p1' } });
     });

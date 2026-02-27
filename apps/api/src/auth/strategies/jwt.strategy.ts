@@ -63,7 +63,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: Auth0TokenPayload & JwtPayload): Promise<JwtPayload> {
+  async validate(payload: Auth0TokenPayload & Record<string, unknown>): Promise<JwtPayload> {
+    // Patient tokens carry type: 'patient'
+    if (payload.type === 'patient') {
+      return {
+        sub: payload.sub,
+        patientId: payload.patientId as string,
+        email: payload.email || '',
+        practiceId: payload.practiceId as string,
+        type: 'patient',
+      };
+    }
+
     // Auth0 tokens have sub like "auth0|abc123" or "google-oauth2|..."
     const isAuth0Token =
       payload.sub?.includes('|') && process.env.AUTH0_DOMAIN;
@@ -90,15 +101,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         email: doctor.email,
         role: doctor.role,
         practiceId: doctor.practiceId,
+        type: 'doctor',
       };
     }
 
-    // Local token — payload already has our shape
+    // Local doctor token — payload already has our shape
     return {
       sub: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      practiceId: payload.practiceId,
+      email: payload.email || '',
+      role: payload.role as string,
+      practiceId: payload.practiceId as string,
+      type: 'doctor',
     };
   }
 }
