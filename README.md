@@ -43,17 +43,20 @@ OrthoMonitor is a remote orthodontic monitoring platform that lets patients scan
 ### Current (Dev Scaffold)
 
 - **Web Dashboard:** Next.js 14 (TypeScript, Tailwind, TanStack Query)
+- **Patient Portal:** Next.js 14 PWA (mobile-first, guided scan uploads, messaging)
 - **API:** Node.js + NestJS (Swagger auto-docs)
 - **Database:** PostgreSQL 16 (Docker) + Prisma ORM
 - **Cache:** Redis 7 (Docker)
-- **Auth:** Dual-mode JWT — local bcrypt+HS256 (default) with optional Auth0 RS256 via JWKS (set `AUTH0_DOMAIN` to enable)
-- **Storage:** Local file uploads (stub)
+- **Auth (Doctor):** Dual-mode JWT — local bcrypt+HS256 (default) with optional Auth0 RS256 via JWKS
+- **Auth (Patient):** Invite-based registration + email/password login, 30-day JWT tokens
+- **Storage:** OCI Object Storage (S3-compatible) with local filesystem fallback
+- **AI:** Claude vision API for tag suggestions (optional, set `ANTHROPIC_API_KEY`)
 - **Monorepo:** pnpm workspaces
 - **Testing:** Jest + @nestjs/testing (API), Vitest + Testing Library + MSW (Web)
 
 ### Planned (Production)
 
-- **Mobile:** React Native + Expo
+- **Mobile:** React Native + Expo (hybrid SMS/WhatsApp chatbot layer)
 - **Database:** AWS RDS (PostgreSQL 16)
 - **Storage:** AWS S3 (encrypted)
 - **Auth:** Auth0 tenant credentials (framework ready, plug in Auth0 domain/clientId)
@@ -84,7 +87,7 @@ pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 
-# 5. Start dev servers (API on :3001, Web on :3000)
+# 5. Start dev servers (API :3001, Web :3000, Patient :3002)
 pnpm dev
 ```
 
@@ -92,10 +95,14 @@ pnpm dev
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Start API + Web in parallel |
-| `pnpm dev:api` | Start API only |
-| `pnpm dev:web` | Start Web only |
+| `pnpm dev` | Start API + Web + Patient in parallel |
+| `pnpm dev:api` | Start API only (port 3001) |
+| `pnpm dev:web` | Start Doctor Dashboard only (port 3000) |
+| `pnpm dev:patient` | Start Patient Portal only (port 3002) |
 | `pnpm build` | Build all packages |
+| `pnpm build:api` | Build API |
+| `pnpm build:web` | Build Doctor Dashboard |
+| `pnpm build:patient` | Build Patient Portal |
 | `pnpm db:generate` | Generate Prisma client |
 | `pnpm db:migrate` | Run database migrations |
 | `pnpm db:seed` | Seed database with sample data |
@@ -110,24 +117,81 @@ pnpm dev
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@orthomonitor.dev | password123 |
+| Admin (Doctor) | admin@orthomonitor.dev | password123 |
 | Doctor | doctor@orthomonitor.dev | password123 |
+| Patient | alice@example.com | patient123 |
 
 ### Project Structure
 
 ```
 ortho-guru-monitoring/
 ├── apps/
-│   ├── api/          # NestJS backend (port 3001)
-│   └── web/          # Next.js dashboard (port 3000)
+│   ├── api/            # NestJS backend (port 3001)
+│   │   ├── prisma/     #   Schema, migrations, seed
+│   │   └── src/
+│   │       ├── auth/           # Doctor auth (local + Auth0)
+│   │       ├── common/         # Guards, decorators, interceptors, Prisma, storage
+│   │       ├── dashboard/      # Dashboard analytics
+│   │       ├── messaging/      # Doctor-patient messaging
+│   │       ├── patient-auth/   # Patient invite, register, login
+│   │       ├── patient-portal/ # Patient API (profile, scans, messages)
+│   │       ├── patients/       # Patient CRUD + invite endpoint
+│   │       ├── practices/      # Practice management
+│   │       ├── scans/          # Scan sessions, uploads, images
+│   │       └── tagging/        # Clinical tagging + AI suggestions
+│   ├── patient/        # Next.js Patient Portal PWA (port 3002)
+│   │   └── src/
+│   │       ├── app/            # Pages (home, scan, messages, login, register)
+│   │       ├── components/     # UI, layout, scan wizard, messages
+│   │       ├── lib/            # API client, hooks, types, utils
+│   │       └── providers/      # Auth + React Query providers
+│   └── web/            # Next.js Doctor Dashboard (port 3000)
+│       └── src/
+│           ├── app/            # Pages (dashboard, patients, scans, messages, settings)
+│           ├── components/     # UI, layout, scan viewer, tagging panel
+│           ├── lib/            # API client, hooks, types, utils
+│           └── providers/      # Auth + React Query providers
 ├── packages/
-│   └── shared/       # Shared TS types & constants
-└── docs/             # Research & specifications
+│   └── shared/         # Shared TS types & tag constants
+└── docs/               # Research & specifications
 ```
 
 ### API Documentation
 
 Swagger UI available at `http://localhost:3001/api/docs` when the API is running.
+
+### Key API Endpoints
+
+**Doctor Auth** (`/api/v1/auth/`)
+- `POST /login` — Doctor login
+- `POST /register` — Doctor registration
+
+**Patient Auth** (`/api/v1/patient-auth/`)
+- `POST /register` — Accept invite + create account
+- `POST /login` — Patient login
+- `GET /me` — Current patient profile
+- `GET /validate-invite/:token` — Check invite validity
+
+**Patient Portal** (`/api/v1/patient/`)
+- `GET /profile` — Treatment progress + doctor name
+- `GET /scans` — Own scan sessions
+- `POST /scans/sessions` — Create scan session
+- `POST /scans/upload-url` — Presigned upload URL
+- `POST /scans/upload/confirm` — Confirm direct upload
+- `GET /messages` — Thread list with unread counts
+- `GET /messages/:threadId` — Thread conversation
+- `POST /messages` — Send message
+
+**Doctor Portal** (`/api/v1/`)
+- `POST /patients/:id/invite` — Generate patient portal invite
+
+### Patient Portal Flow
+
+1. Doctor opens patient detail page and clicks "Invite to Portal"
+2. System generates a 7-day invite link (e.g., `http://localhost:3002/register/{token}`)
+3. Doctor shares link with patient (text, email, in person)
+4. Patient opens link, sets email + password to create account
+5. Patient logs into portal: sees treatment progress, takes guided scan photos, messages doctor
 
 ### Auth0 SSO (Optional)
 
@@ -147,6 +211,21 @@ When enabled:
 - Auth0 users are auto-created as Doctor records on first login (linked by email or Auth0 sub)
 - Local email/password login continues to work in parallel
 
+### OCI Object Storage (Optional)
+
+Cloud storage is built in but falls back to local filesystem by default. To enable OCI:
+
+```env
+OCI_S3_ENDPOINT="https://your-namespace.compat.objectstorage.region.oraclecloud.com"
+OCI_S3_REGION="eu-frankfurt-1"
+OCI_S3_BUCKET="orthomonitor-scans"
+OCI_S3_ACCESS_KEY="your-access-key"
+OCI_S3_SECRET_KEY="your-secret-key"
+```
+
 ## Status
 
-🟢 Scaffold complete — Backend API + Web Dashboard with 125 passing backend unit tests (16 suites), 56 frontend unit tests (9 suites), and 11 shared tests (1 suite) across all packages.
+- Backend API with 10 modules (auth, patient-auth, patient-portal, patients, practices, scans, tagging, messaging, dashboard, common)
+- Doctor Dashboard (Next.js PWA) with full patient management, scan review, tagging, messaging, analytics
+- Patient Portal (Next.js PWA) with invite auth, guided 5-photo scan wizard, messaging
+- 125 passing backend unit tests, 56 frontend unit tests, 11 shared tests
