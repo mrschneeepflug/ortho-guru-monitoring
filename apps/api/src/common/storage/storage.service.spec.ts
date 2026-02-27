@@ -98,6 +98,22 @@ describe('StorageService', () => {
       await service.deleteObject('scans/s1/FRONT.jpg');
       expect(mockSend).toHaveBeenCalled();
     });
+
+    it('should get an object and return a Buffer', async () => {
+      const chunks = [Buffer.from('chunk1'), Buffer.from('chunk2')];
+      const mockBody = {
+        [Symbol.asyncIterator]: async function* () {
+          for (const chunk of chunks) yield chunk;
+        },
+      };
+      mockSend.mockResolvedValueOnce({ Body: mockBody });
+
+      const result = await service.getObject('scans/s1/FRONT.jpg');
+
+      expect(Buffer.isBuffer(result)).toBe(true);
+      expect(result.toString()).toBe('chunk1chunk2');
+      expect(mockSend).toHaveBeenCalled();
+    });
   });
 
   describe('when OCI env vars are NOT set', () => {
@@ -131,6 +147,11 @@ describe('StorageService', () => {
 
     it('should throw on deleteObject', async () => {
       await expect(service.deleteObject('key'))
+        .rejects.toThrow('Cloud storage is not configured');
+    });
+
+    it('should throw on getObject', async () => {
+      await expect(service.getObject('key'))
         .rejects.toThrow('Cloud storage is not configured');
     });
   });

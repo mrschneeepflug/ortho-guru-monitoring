@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { IMAGE_TYPE_LABELS } from '@/lib/constants';
-import { fetchImageUrl } from '@/lib/hooks/use-upload';
+import { fetchImageUrl, fetchThumbnailUrl } from '@/lib/hooks/use-upload';
 import { cn } from '@/lib/utils';
 
 interface ScanImage {
@@ -10,17 +10,38 @@ interface ScanImage {
   imageType: string;
   localPath: string | null;
   s3Key: string | null;
+  thumbnailKey: string | null;
   qualityScore: number | null;
 }
 
 export function ScanImageViewer({ images }: { images: ScanImage[] }) {
   const [selected, setSelected] = useState<string | null>(images[0]?.id ?? null);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const selectedImage = images.find((img) => img.id === selected);
   const hasStoredImage = selectedImage?.s3Key || selectedImage?.localPath;
 
+  // Eagerly fetch thumbnail URLs for all images that have a thumbnailKey
+  useEffect(() => {
+    let cancelled = false;
+    const toFetch = images.filter((img) => img.thumbnailKey && !thumbnailUrls[img.id]);
+    if (toFetch.length === 0) return;
+
+    Promise.allSettled(
+      toFetch.map(async (img) => {
+        const url = await fetchThumbnailUrl(img.id);
+        if (!cancelled && url) {
+          setThumbnailUrls((prev) => ({ ...prev, [img.id]: url }));
+        }
+      }),
+    );
+
+    return () => { cancelled = true; };
+  }, [images, thumbnailUrls]);
+
+  // Fetch full-size image URL for the selected image
   useEffect(() => {
     if (!selected || imageUrls[selected]) return;
 
@@ -81,9 +102,9 @@ export function ScanImageViewer({ images }: { images: ScanImage[] }) {
               selected === img.id ? 'border-medical-blue' : 'border-transparent hover:border-gray-300',
             )}
           >
-            {imageUrls[img.id] ? (
+            {thumbnailUrls[img.id] || imageUrls[img.id] ? (
               <img
-                src={imageUrls[img.id]}
+                src={thumbnailUrls[img.id] || imageUrls[img.id]}
                 alt={IMAGE_TYPE_LABELS[img.imageType] ?? img.imageType}
                 className="w-full h-full object-cover"
               />

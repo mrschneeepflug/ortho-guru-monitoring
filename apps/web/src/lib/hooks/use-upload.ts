@@ -82,3 +82,17 @@ export async function fetchImageUrl(imageId: string): Promise<string | null> {
   );
   return data.data.url;
 }
+
+/**
+ * Get a pre-signed download URL for a scan image thumbnail.
+ */
+export async function fetchThumbnailUrl(imageId: string): Promise<string | null> {
+  try {
+    const { data } = await apiClient.get<ApiResponse<{ url: string | null }>>(
+      `/scans/images/${imageId}/thumbnail-url`,
+    );
+    return data.data.url;
+  } catch {
+    return null;
+  }
+}

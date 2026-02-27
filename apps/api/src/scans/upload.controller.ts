@@ -102,4 +102,17 @@ export class UploadController {
   ) {
     return this.uploadService.getImageUrl(id, user.practiceId);
   }
+
+  /**
+   * Get a pre-signed download URL for a scan image thumbnail.
+   */
+  @Get('images/:id/thumbnail-url')
+  @ApiOperation({ summary: 'Get a pre-signed download URL for a scan image thumbnail' })
+  @ApiOkResponse({ description: 'Pre-signed thumbnail download URL' })
+  getThumbnailUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.uploadService.getThumbnailUrl(id, user.practiceId);
+  }
 }

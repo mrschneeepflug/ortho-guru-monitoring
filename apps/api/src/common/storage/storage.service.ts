@@ -97,4 +97,22 @@ export class StorageService {
       }),
     );
   }
+
+  async getObject(key: string): Promise<Buffer> {
+    if (!this.s3) {
+      throw new Error('Cloud storage is not configured');
+    }
+    const response = await this.s3.send(
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      }),
+    );
+    const stream = response.Body;
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream as AsyncIterable<Buffer>) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  }
 }

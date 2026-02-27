@@ -1,15 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ImageType } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { StorageService } from '../common/storage/storage.service';
+import { ThumbnailService } from './thumbnail.service';
 import * as path from 'path';
 import * as fs from 'fs';
 
 @Injectable()
 export class UploadService {
+  private readonly logger = new Logger(UploadService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly thumbnailService: ThumbnailService,
   ) {}
 
   /**
@@ -71,6 +75,20 @@ export class UploadService {
       }),
     ]);
 
+    // Generate thumbnail (non-fatal)
+    try {
+      const thumbnailKey = await this.thumbnailService.generateAndStoreCloud(key);
+      if (thumbnailKey) {
+        await this.prisma.scanImage.update({
+          where: { id: scanImage.id },
+          data: { thumbnailKey },
+        });
+        return { ...scanImage, thumbnailKey };
+      }
+    } catch (error) {
+      this.logger.warn(`Thumbnail generation failed for ${key}: ${(error as Error).message}`);
+    }
+
     return scanImage;
   }
 
@@ -112,6 +130,20 @@ export class UploadService {
         }),
       ]);
 
+      // Generate thumbnail (non-fatal)
+      try {
+        const { thumbnailKey } = await this.thumbnailService.generateAndStoreFromBuffer(file.buffer, key, null);
+        if (thumbnailKey) {
+          await this.prisma.scanImage.update({
+            where: { id: scanImage.id },
+            data: { thumbnailKey },
+          });
+          return { ...scanImage, thumbnailKey };
+        }
+      } catch (error) {
+        this.logger.warn(`Thumbnail generation failed for ${key}: ${(error as Error).message}`);
+      }
+
       return scanImage;
     }
 
@@ -138,6 +170,20 @@ export class UploadService {
         data: { imageCount: { increment: 1 } },
       }),
     ]);
+
+    // Generate thumbnail (non-fatal)
+    try {
+      const { thumbnailKey } = await this.thumbnailService.generateAndStoreFromBuffer(file.buffer, null, filePath);
+      if (thumbnailKey) {
+        await this.prisma.scanImage.update({
+          where: { id: scanImage.id },
+          data: { thumbnailKey },
+        });
+        return { ...scanImage, thumbnailKey };
+      }
+    } catch (error) {
+      this.logger.warn(`Thumbnail generation failed for local file ${filePath}: ${(error as Error).message}`);
+    }
 
     return scanImage;
   }
@@ -166,6 +212,34 @@ export class UploadService {
     }
 
     return { url: image.localPath || null };
+  }
+
+  async getThumbnailUrl(imageId: string, practiceId: string) {
+    const image = await this.prisma.scanImage.findFirst({
+      where: {
+        id: imageId,
+        session: { patient: { practiceId } },
+      },
+    });
+
+    if (!image) {
+      throw new NotFoundException(
+        `Scan image with ID "${imageId}" not found`,
+      );
+    }
+
+    if (!image.thumbnailKey) {
+      return { url: null };
+    }
+
+    // Cloud-stored thumbnail
+    if (image.s3Key && this.storage.isCloudEnabled()) {
+      const url = await this.storage.generateDownloadUrl(image.thumbnailKey);
+      return { url };
+    }
+
+    // Local thumbnail path
+    return { url: image.thumbnailKey };
   }
 
   private async findSession(sessionId: string, practiceId: string) {
