@@ -15,10 +15,10 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {summaryLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm animate-pulse h-24" />
+            <div key={i} className="bg-white rounded-xl p-4 sm:p-6 shadow-sm animate-pulse h-24" />
           ))
         ) : (
           <>
@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
       <p className="text-sm text-gray-500">{label}</p>
       <p className="text-2xl font-bold mt-1">{value}</p>
     </div>

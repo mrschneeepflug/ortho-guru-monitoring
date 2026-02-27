@@ -92,7 +92,7 @@ export function ScanImageViewer({ images }: { images: ScanImage[] }) {
         )}
       </div>
       {/* Thumbnail grid */}
-      <div className="grid grid-cols-5 gap-2 p-4">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 p-3 sm:p-4">
         {images.map((img) => (
           <button
             key={img.id}

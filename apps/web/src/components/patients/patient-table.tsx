@@ -56,7 +56,7 @@ export function PatientTable({ patients, loading, total, page, limit, onPageChan
       </Table>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-4">
           <p className="text-sm text-gray-500">{total} patients total</p>
           <div className="flex gap-2">
             <button

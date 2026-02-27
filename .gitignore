@@ -37,3 +37,7 @@ coverage/
 
 # Turbo
 .turbo/
+
+# PWA generated files
+apps/web/public/sw.js
+apps/web/public/workbox-*.js

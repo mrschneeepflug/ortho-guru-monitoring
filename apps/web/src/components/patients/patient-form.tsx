@@ -43,7 +43,7 @@ export function PatientForm({ onSubmit, loading }: PatientFormProps) {
         <label className="block text-sm font-medium text-gray-700 mb-1">Doctor ID *</label>
         <Input value={form.doctorId} onChange={(e) => update('doctorId', e.target.value)} required />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Treatment Type</label>
           <Input value={form.treatmentType} onChange={(e) => update('treatmentType', e.target.value)} />
@@ -53,7 +53,7 @@ export function PatientForm({ onSubmit, loading }: PatientFormProps) {
           <Input value={form.alignerBrand} onChange={(e) => update('alignerBrand', e.target.value)} />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Total Stages</label>
           <Input type="number" value={form.totalStages} onChange={(e) => update('totalStages', e.target.value)} />

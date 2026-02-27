@@ -18,9 +18,9 @@ export function ScanFeedCard({ item }: { item: FeedItem }) {
           <p className="text-sm font-medium capitalize">{item.type}</p>
           <p className="text-xs text-gray-500">{formatRelativeTime(item.date)}</p>
         </div>
-        {item.data.status && (
-          <Badge className={STATUS_COLORS[item.data.status as string] ?? 'bg-gray-100 text-gray-800'}>
-            {STATUS_LABELS[item.data.status as string] ?? item.data.status}
+        {typeof item.data.status === 'string' && (
+          <Badge className={STATUS_COLORS[item.data.status] ?? 'bg-gray-100 text-gray-800'}>
+            {STATUS_LABELS[item.data.status] ?? item.data.status}
           </Badge>
         )}
       </CardContent>

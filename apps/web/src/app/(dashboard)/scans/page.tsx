@@ -13,12 +13,12 @@ export default function ScansPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold">Scan Sessions</h1>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm"
         >
           <option value="">All Statuses</option>
           <option value="PENDING">Pending</option>

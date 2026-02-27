@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { Camera } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
@@ -38,6 +39,7 @@ export function UploadImageDialog({
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useUploadScanImage();
 
   const resetState = useCallback(() => {
@@ -46,6 +48,7 @@ export function UploadImageDialog({
     setError(null);
     setDragOver(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   }, []);
 
   const handleClose = useCallback(() => {
@@ -156,6 +159,24 @@ export function UploadImageDialog({
             className="hidden"
           />
         </div>
+
+        {/* Camera capture button (mobile only) */}
+        <button
+          type="button"
+          onClick={() => cameraInputRef.current?.click()}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors sm:hidden"
+        >
+          <Camera className="h-4 w-4" />
+          Take Photo
+        </button>
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileChange}
+          className="hidden"
+        />
 
         {file && (
           <p className="text-sm text-gray-500">

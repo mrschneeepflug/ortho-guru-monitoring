@@ -13,17 +13,17 @@ export default function PatientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold">Patients</h1>
         <Link
           href="/patients/new"
-          className="px-4 py-2 bg-medical-blue text-white rounded-lg hover:bg-medical-dark transition-colors"
+          className="px-4 py-2 bg-medical-blue text-white rounded-lg hover:bg-medical-dark transition-colors text-center"
         >
           Add Patient
         </Link>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
           placeholder="Search patients..."
@@ -34,7 +34,7 @@ export default function PatientsPage() {
         <select
           value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm"
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>

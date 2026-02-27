@@ -14,7 +14,7 @@ export function NavLink({ href, icon: Icon, label, active }: NavLinkProps) {
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
         active ? 'bg-primary-50 text-medical-blue' : 'text-gray-600 hover:bg-gray-100',
       )}
     >
