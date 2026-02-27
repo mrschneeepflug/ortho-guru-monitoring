@@ -3,8 +3,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-gradient-to-b from-medical-blue/5 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-medical-blue">MyOrtho</h1>
-          <p className="text-sm text-gray-500 mt-1">Patient Portal</p>
+          <img src="/logo-bissig.jpg" alt="bissig Kieferorthopädie" className="mx-auto" style={{ width: 80 }} />
         </div>
         {children}
       </div>

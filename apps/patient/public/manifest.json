@@ -1,11 +1,11 @@
 {
-  "name": "OrthoMonitor Patient",
-  "short_name": "MyOrtho",
+  "name": "bissig Kieferorthopädie",
+  "short_name": "bissig",
   "description": "Patient portal for orthodontic monitoring",
   "start_url": "/home",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0077B6",
+  "theme_color": "#4AABC8",
   "icons": [
     {
       "src": "/icons/icon-192.png",

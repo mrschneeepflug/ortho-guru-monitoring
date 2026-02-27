@@ -4,7 +4,7 @@ import { PatientAuthProvider } from '@/providers/patient-auth-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'MyOrtho - Patient Portal',
+  title: 'bissig Kieferorthopädie',
   description: 'Monitor your orthodontic treatment progress',
   manifest: '/manifest.json',
 };
@@ -13,7 +13,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#0077B6',
+  themeColor: '#4AABC8',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
