@@ -25,3 +25,14 @@ export function useUpdatePractice() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['practices'] }),
   });
 }
+
+export function useUpdatePracticeSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...settings }: { id: string; messagingMode: 'portal' | 'whatsapp'; whatsappNumber?: string }) => {
+      const { data } = await apiClient.patch<ApiResponse<Practice>>(`/practices/${id}/settings`, settings);
+      return data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['practices'] }),
+  });
+}

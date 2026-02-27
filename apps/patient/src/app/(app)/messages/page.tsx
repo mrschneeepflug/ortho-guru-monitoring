@@ -1,12 +1,29 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MessageCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ThreadListItem } from '@/components/messages/thread-list-item';
 import { usePatientThreads } from '@/lib/hooks/use-patient-messages';
+import { usePatientProfile } from '@/lib/hooks/use-patient-profile';
 
 export default function MessagesPage() {
+  const router = useRouter();
+  const { data: profile } = usePatientProfile();
   const { data: threads, isLoading } = usePatientThreads();
+
+  const messagingMode = profile?.practiceSettings?.messagingMode ?? 'portal';
+
+  useEffect(() => {
+    if (messagingMode === 'whatsapp') {
+      router.replace('/home');
+    }
+  }, [messagingMode, router]);
+
+  if (messagingMode === 'whatsapp') {
+    return null;
+  }
 
   if (isLoading) {
     return (

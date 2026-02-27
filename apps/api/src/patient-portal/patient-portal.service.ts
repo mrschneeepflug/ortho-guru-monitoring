@@ -22,6 +22,7 @@ export class PatientPortalService {
     const patient = await this.prisma.patient.findUnique({
       where: { id: patientId },
       include: {
+        practice: { select: { settings: true } },
         doctor: { select: { name: true } },
         scanSessions: {
           orderBy: { createdAt: 'desc' },
@@ -38,6 +39,8 @@ export class PatientPortalService {
       ? new Date(lastScanDate.getTime() + patient.scanFrequency * 24 * 60 * 60 * 1000)
       : null;
 
+    const practiceSettings = (patient.practice?.settings as Record<string, unknown>) ?? {};
+
     return {
       id: patient.id,
       name: patient.name,
@@ -51,6 +54,10 @@ export class PatientPortalService {
       doctorName: patient.doctor.name,
       lastScanDate,
       nextScanDue,
+      practiceSettings: {
+        messagingMode: (practiceSettings.messagingMode as string) ?? 'portal',
+        whatsappNumber: practiceSettings.whatsappNumber as string | undefined,
+      },
     };
   }
 

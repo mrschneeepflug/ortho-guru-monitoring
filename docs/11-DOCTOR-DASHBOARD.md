@@ -115,8 +115,9 @@ apps/web/src/
 
 ### Settings (`(dashboard)/settings/page.tsx`)
 - **Practice Information** (editable): name, address, phone — save button
+- **Patient Messaging** (editable): radio toggle between "In-App Portal" and "WhatsApp" mode. When WhatsApp is selected, a phone number input appears (digits only, international format). Separate save button calls `PATCH /practices/:id/settings`
 - **Subscription & Performance** (read-only): tier, tagging rate %, discount %
-- **Hooks:** `usePractice()`, `useUpdatePractice()`
+- **Hooks:** `usePractice()`, `useUpdatePractice()`, `useUpdatePracticeSettings()`
 
 ---
 
@@ -170,7 +171,7 @@ All hooks are in `apps/web/src/lib/hooks/`.
 | `use-tagging.ts` | `useSessionTags()`, `useSubmitTags()`, `useAiSuggest()`, `useTagAnalytics()` | `/tagging/*` |
 | `use-upload.ts` | `useUploadScanImage()`, `fetchImageUrl()`, `fetchThumbnailUrl()` | `/scans/upload/*`, `/scans/images/*` |
 | `use-patient-invite.ts` | `useInvitePatient()` | `/patients/:id/invite` |
-| `use-practices.ts` | `usePractice()`, `useUpdatePractice()` | `/practices` |
+| `use-practices.ts` | `usePractice()`, `useUpdatePractice()`, `useUpdatePracticeSettings()` | `/practices`, `/practices/:id/settings` |
 | `use-online-status.ts` | `useOnlineStatus()` | N/A (browser API) |
 
 ---

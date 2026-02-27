@@ -101,7 +101,8 @@ Hosts the `ScanWizard` component. See detailed section below.
 - Thread list with `ThreadListItem` components
 - Empty state (icon + message) when no threads
 - Loading skeletons
-- **Hook:** `usePatientThreads()`
+- **WhatsApp mode guard:** If `practiceSettings.messagingMode` is `'whatsapp'`, redirects to `/home` (prevents direct URL access)
+- **Hooks:** `usePatientThreads()`, `usePatientProfile()`
 
 ### Thread Detail (`(app)/messages/[threadId]/page.tsx`)
 - Back button → `/messages`
@@ -181,7 +182,7 @@ Upload process:
 ### Layout
 | Component | Description |
 |-----------|-------------|
-| `BottomNav` | Fixed bottom bar: Home, Scan, Messages icons. Active state. Unread badge on Messages. `safe-area-bottom` for notch devices. |
+| `BottomNav` | Fixed bottom bar: Home, Scan, Messages icons. Active state. Unread badge on Messages. `safe-area-bottom` for notch devices. **Messaging mode toggle:** When practice is set to WhatsApp mode, the Messages tab becomes a green WhatsApp icon linking to `wa.me/{number}` (external, opens in new tab). Uses `usePatientProfile()` to read `practiceSettings.messagingMode`. |
 | `PatientHeader` | Sticky top header: MyOrtho branding, patient name, logout button |
 
 ### Scan Components

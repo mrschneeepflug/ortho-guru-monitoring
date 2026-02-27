@@ -119,7 +119,7 @@ Patient-facing API endpoints: profile, scan uploads, and messaging. All guarded 
 
 | Category | Method | Description |
 |----------|--------|-------------|
-| Profile | `getProfile(patientId)` | Patient profile + lastScanDate + nextScanDue calculation |
+| Profile | `getProfile(patientId)` | Patient profile + lastScanDate + nextScanDue + practiceSettings (messagingMode, whatsappNumber) |
 | Scans | `listScans(patientId)` | Patient's scan sessions |
 | Scans | `createScanSession(patientId)` | New PENDING session |
 | Scans | `generateUploadUrl(patientId, sessionId, imageType)` | Presigned PUT URL |
@@ -135,6 +135,7 @@ Patient-facing API endpoints: profile, scan uploads, and messaging. All guarded 
 - `verifySessionOwnership()` private method ensures patients can only access their own scan sessions
 - Unread count filters by `senderType !== 'PATIENT'` (patient only sees doctor/system messages as unread)
 - `nextScanDue` = lastScanDate + scanFrequency days
+- `getProfile` joins the patient's practice to include `practiceSettings` (messaging mode and WhatsApp number) in the response
 
 ---
 
@@ -288,7 +289,10 @@ Practice (tenant) management. CRUD operations with role-based access.
 | `findOne(id, practiceId)` | Single practice with isolation check |
 | `create(dto)` | Create new practice (ADMIN only) |
 | `update(id, dto, practiceId)` | Update practice fields |
+| `updateSettings(id, practiceId, dto)` | Merge messaging settings into `settings` JSON field (ADMIN only) |
+| `getSettings(id)` | Parse and return `{ messagingMode, whatsappNumber? }` from `settings` JSON |
 
 ### Design Decisions
-- Create is restricted to `@Roles('ADMIN')` via RolesGuard
+- Create and updateSettings are restricted to `@Roles('ADMIN')` via RolesGuard
 - `findAll` uses the JWT payload to scope results (ADMINs see all, others see only their own)
+- `updateSettings` merges into the existing `settings` JSON field, preserving any other keys. When switching to portal mode, `whatsappNumber` is cleared

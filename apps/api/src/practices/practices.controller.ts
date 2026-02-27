@@ -15,6 +15,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { CreatePracticeDto } from './dto/create-practice.dto';
 import { UpdatePracticeDto } from './dto/update-practice.dto';
+import { UpdatePracticeSettingsDto } from './dto/update-practice-settings.dto';
 
 @ApiTags('practices')
 @ApiBearerAuth()
@@ -49,5 +50,16 @@ export class PracticesController {
     @CurrentUser('practiceId') practiceId: string,
   ) {
     return this.practicesService.update(id, dto, practiceId);
+  }
+
+  @Patch(':id/settings')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  updateSettings(
+    @Param('id') id: string,
+    @Body() dto: UpdatePracticeSettingsDto,
+    @CurrentUser('practiceId') practiceId: string,
+  ) {
+    return this.practicesService.updateSettings(id, practiceId, dto);
   }
 }

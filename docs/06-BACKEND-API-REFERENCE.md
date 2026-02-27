@@ -143,6 +143,17 @@ Update a practice.
 **Response:** `Practice`
 **Errors:** 403 (cross-tenant)
 
+### `PATCH /practices/:id/settings`
+Update practice settings (messaging mode, etc.).
+
+**Auth:** Doctor JWT + `@Roles('ADMIN')`
+**Body:**
+```json
+{ "messagingMode": "portal | whatsapp", "whatsappNumber?": "string (digits, required when whatsapp)" }
+```
+**Response:** `Practice` (with updated `settings` JSON)
+**Errors:** 403 (cross-tenant or non-admin), 404
+
 ---
 
 ## Patients Module
@@ -417,7 +428,7 @@ All endpoints require `PatientAuthGuard` (patient JWT).
 ### `GET /patient/profile`
 Get patient profile with treatment progress.
 
-**Response:** `{ id, name, email, treatmentType, alignerBrand, currentStage, totalStages, scanFrequency, status, doctorName, lastScanDate, nextScanDue }`
+**Response:** `{ id, name, email, treatmentType, alignerBrand, currentStage, totalStages, scanFrequency, status, doctorName, lastScanDate, nextScanDue, practiceSettings: { messagingMode, whatsappNumber? } }`
 
 ### `GET /patient/scans`
 List patient's own scan sessions.

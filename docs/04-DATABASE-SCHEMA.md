@@ -90,12 +90,23 @@ The tenant model. All data is scoped to a practice.
 | `subscriptionTier` | String | @default("free") | Subscription level |
 | `taggingRate` | Float | @default(0) | Calculated tagging percentage |
 | `discountPercent` | Float | @default(0) | Current discount tier |
-| `settings` | Json | @default({}) | Flexible settings |
+| `settings` | Json | @default({}) | Flexible settings (see [Practice Settings Schema](#practice-settings-schema)) |
 | `createdAt` | DateTime | @default(now()) | |
 | `updatedAt` | DateTime | @updatedAt | |
 
 **Relations:** doctors[], patients[], auditLogs[]
 **Table:** `practices`
+
+#### Practice Settings Schema
+
+The `settings` JSON field stores practice-level configuration. Current keys:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `messagingMode` | `'portal' \| 'whatsapp'` | `'portal'` | Patient messaging channel. Portal = in-app messaging; WhatsApp = external link |
+| `whatsappNumber` | `string?` | — | Office WhatsApp number (digits only, e.g. `"1234567890"`). Required when `messagingMode` is `'whatsapp'`, cleared when switched to portal |
+
+Updated via `PATCH /practices/:id/settings` (ADMIN only). Read by the patient portal's `GET /patient/profile` endpoint to determine which messaging UI to show.
 
 ---
 

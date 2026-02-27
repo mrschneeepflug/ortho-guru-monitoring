@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/providers/auth-provider';
-import { usePractice, useUpdatePractice } from '@/lib/hooks/use-practices';
+import { usePractice, useUpdatePractice, useUpdatePracticeSettings } from '@/lib/hooks/use-practices';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,19 +12,38 @@ export default function SettingsPage() {
   const practiceId = user?.practiceId ?? '';
   const { data: practice, isLoading } = usePractice(practiceId);
   const updatePractice = useUpdatePractice();
+  const updateSettings = useUpdatePracticeSettings();
 
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const [messagingMode, setMessagingMode] = useState<'portal' | 'whatsapp'>('portal');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState(false);
+
   useEffect(() => {
     if (practice) {
       setName(practice.name);
       setAddress(practice.address ?? '');
       setPhone(practice.phone ?? '');
+      const s = practice.settings as Record<string, unknown> | undefined;
+      setMessagingMode((s?.messagingMode as 'portal' | 'whatsapp') ?? 'portal');
+      setWhatsappNumber((s?.whatsappNumber as string) ?? '');
     }
   }, [practice]);
+
+  const handleSettingsSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettingsSuccess(false);
+    await updateSettings.mutateAsync({
+      id: practiceId,
+      messagingMode,
+      whatsappNumber: messagingMode === 'whatsapp' ? whatsappNumber : undefined,
+    });
+    setSettingsSuccess(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +98,65 @@ export default function SettingsPage() {
 
             <Button type="submit" disabled={updatePractice.isPending}>
               {updatePractice.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Patient Messaging</h2>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSettingsSave} className="space-y-4">
+            <fieldset className="space-y-2">
+              <legend className="block text-sm font-medium text-gray-700 mb-1">Messaging Mode</legend>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="messagingMode"
+                  value="portal"
+                  checked={messagingMode === 'portal'}
+                  onChange={() => setMessagingMode('portal')}
+                  className="accent-blue-600"
+                />
+                <span className="text-sm">In-App Portal</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="messagingMode"
+                  value="whatsapp"
+                  checked={messagingMode === 'whatsapp'}
+                  onChange={() => setMessagingMode('whatsapp')}
+                  className="accent-blue-600"
+                />
+                <span className="text-sm">WhatsApp</span>
+              </label>
+            </fieldset>
+
+            {messagingMode === 'whatsapp' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Phone Number</label>
+                <Input
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+                  placeholder="1234567890"
+                  required
+                />
+                <p className="text-xs text-gray-400 mt-1">Digits only, including country code (e.g. 1234567890)</p>
+              </div>
+            )}
+
+            {updateSettings.isError && (
+              <p className="text-sm text-red-600">Failed to save messaging settings.</p>
+            )}
+            {settingsSuccess && (
+              <p className="text-sm text-green-600">Messaging settings saved.</p>
+            )}
+
+            <Button type="submit" disabled={updateSettings.isPending}>
+              {updateSettings.isPending ? 'Saving...' : 'Save Messaging Settings'}
             </Button>
           </form>
         </CardContent>

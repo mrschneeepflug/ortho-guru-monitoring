@@ -11,6 +11,10 @@ export interface PatientProfile {
   doctorName: string;
   lastScanDate: string | null;
   nextScanDue: string | null;
+  practiceSettings?: {
+    messagingMode: 'portal' | 'whatsapp';
+    whatsappNumber?: string;
+  };
 }
 
 export interface ScanSession {
