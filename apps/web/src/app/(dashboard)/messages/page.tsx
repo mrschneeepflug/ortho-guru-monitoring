@@ -1,15 +1,22 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useThreads } from '@/lib/hooks/use-messages';
 import { formatRelativeTime } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { NewThreadDialog } from '@/components/messages/new-thread-dialog';
 
 export default function MessagesPage() {
   const { data: threads, isLoading } = useThreads();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Messages</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl font-bold">Messages</h1>
+        <Button onClick={() => setDialogOpen(true)}>New Thread</Button>
+      </div>
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -38,6 +45,7 @@ export default function MessagesPage() {
           )) ?? <p className="text-gray-500">No message threads</p>}
         </div>
       )}
+      <NewThreadDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </div>
   );
 }

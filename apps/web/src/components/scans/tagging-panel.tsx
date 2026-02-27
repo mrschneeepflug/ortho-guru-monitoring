@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import { useSubmitTags } from '@/lib/hooks/use-tagging';
-import { TAG_LABELS, TAG_COLORS } from '@/lib/constants';
+import { TAG_LABELS, TAG_COLORS, DETAIL_TAG_OPTIONS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface TagSet {
   overallTracking: number;
   alignerFit: number | null;
   oralHygiene: number;
+  detailTags: string[];
+  actionTaken: string | null;
   notes: string | null;
 }
 
@@ -19,6 +22,14 @@ export function TaggingPanel({ sessionId, existingTags }: { sessionId: string; e
   const [fit, setFit] = useState(existingTags?.alignerFit ?? 1);
   const [hygiene, setHygiene] = useState(existingTags?.oralHygiene ?? 1);
   const [notes, setNotes] = useState(existingTags?.notes ?? '');
+  const [detailTags, setDetailTags] = useState<string[]>(existingTags?.detailTags ?? []);
+  const [actionTaken, setActionTaken] = useState(existingTags?.actionTaken ?? '');
+
+  const toggleDetailTag = (tag: string) => {
+    setDetailTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
 
   const handleSubmit = async () => {
     await submitTags.mutateAsync({
@@ -27,6 +38,8 @@ export function TaggingPanel({ sessionId, existingTags }: { sessionId: string; e
       alignerFit: fit,
       oralHygiene: hygiene,
       notes: notes || undefined,
+      detailTags,
+      actionTaken: actionTaken || undefined,
     });
   };
 
@@ -45,6 +58,36 @@ export function TaggingPanel({ sessionId, existingTags }: { sessionId: string; e
           onChange={(e) => setNotes(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none h-20"
           placeholder="Clinical observations..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Detail Tags</label>
+        <div className="flex flex-wrap gap-2">
+          {DETAIL_TAG_OPTIONS.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => toggleDetailTag(tag)}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
+                detailTags.includes(tag)
+                  ? 'bg-medical-blue text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+              )}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Action Taken</label>
+        <Input
+          value={actionTaken}
+          onChange={(e) => setActionTaken(e.target.value)}
+          placeholder="e.g., Restarted aligner stage, prescribed retainer..."
         />
       </div>
 

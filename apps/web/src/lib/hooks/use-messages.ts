@@ -25,6 +25,17 @@ export function useThread(id: string) {
   });
 }
 
+export function useCreateThread() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (thread: { patientId: string; subject: string }) => {
+      const { data } = await apiClient.post<ApiResponse<MessageThread>>('/messaging/threads', thread);
+      return data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['threads'] }),
+  });
+}
+
 export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({

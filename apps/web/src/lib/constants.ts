@@ -37,3 +37,5 @@ export const IMAGE_TYPE_LABELS: Record<string, string> = {
   UPPER_OCCLUSAL: 'Upper Occlusal',
   LOWER_OCCLUSAL: 'Lower Occlusal',
 };
+
+export { DETAIL_TAG_OPTIONS } from 'shared';
