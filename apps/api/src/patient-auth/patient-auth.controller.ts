@@ -6,6 +6,7 @@ import { PatientLoginDto } from './dto/patient-login.dto';
 import { PatientAuthGuard } from '../common/guards/patient-auth.guard';
 import { CurrentPatient } from '../common/decorators/current-patient.decorator';
 import { PatientJwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('patient-auth')
 @Controller('patient-auth')
@@ -13,12 +14,14 @@ export class PatientAuthController {
   constructor(private readonly patientAuthService: PatientAuthService) {}
 
   @Post('register')
+  @Public()
   @ApiOperation({ summary: 'Register using an invite token' })
   register(@Body() dto: PatientRegisterDto) {
     return this.patientAuthService.register(dto.token, dto.email, dto.password);
   }
 
   @Post('login')
+  @Public()
   @ApiOperation({ summary: 'Patient login with email and password' })
   login(@Body() dto: PatientLoginDto) {
     return this.patientAuthService.login(dto.email, dto.password);
@@ -33,6 +36,7 @@ export class PatientAuthController {
   }
 
   @Get('validate-invite/:token')
+  @Public()
   @ApiOperation({ summary: 'Check if an invite token is valid' })
   validateInvite(@Param('token') token: string) {
     return this.patientAuthService.validateInvite(token);
