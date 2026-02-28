@@ -2,6 +2,8 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TaggingService } from './tagging.service';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { AiService } from '../common/ai/ai.service';
+import { StorageService } from '../common/storage/storage.service';
 import { createMockPrismaService, MockPrismaService } from '../test/prisma-mock.factory';
 
 describe('TaggingService', () => {
@@ -13,6 +15,8 @@ describe('TaggingService', () => {
       providers: [
         TaggingService,
         { provide: PrismaService, useFactory: createMockPrismaService },
+        { provide: AiService, useValue: { suggestTags: jest.fn() } },
+        { provide: StorageService, useValue: { getSignedUrl: jest.fn(), getObject: jest.fn() } },
       ],
     }).compile();
 

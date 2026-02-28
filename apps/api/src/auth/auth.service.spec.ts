@@ -87,6 +87,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         role: 'DOCTOR',
         practiceId: 'p1',
+        type: 'doctor',
       });
       expect(result.accessToken).toBe('mock-jwt-token');
     });
@@ -146,6 +147,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         role: 'DOCTOR',
         practiceId: 'p1',
+        type: 'doctor',
       });
     });
   });
