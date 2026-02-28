@@ -1,4 +1,4 @@
-import { PrismaClient, DoctorRole, PatientStatus, ScanStatus, SenderType } from '@prisma/client';
+import { PrismaClient, DoctorRole, PatientStatus, ScanStatus, SenderType, AttachmentCheck } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -169,12 +169,22 @@ async function main() {
       imageCount: 5,
       reviewedById: null,
       reviewedAt: null,
+      reportTrayNumber: 8,
+      reportAlignerFit: 2,
+      reportWearTimeHrs: 18,
+      reportAttachments: AttachmentCheck.YES,
+      reportNotes: 'Upper left aligner feels a bit loose since yesterday.',
     },
     create: {
       id: 'seed-scan-001',
       patientId: patients[0].id,
       status: ScanStatus.PENDING,
       imageCount: 5,
+      reportTrayNumber: 8,
+      reportAlignerFit: 2,
+      reportWearTimeHrs: 18,
+      reportAttachments: AttachmentCheck.YES,
+      reportNotes: 'Upper left aligner feels a bit loose since yesterday.',
     },
   });
   console.log(`  Scan (PENDING): ${scanPending.id}`);
@@ -189,6 +199,9 @@ async function main() {
       imageCount: 5,
       reviewedById: drChen.id,
       reviewedAt,
+      reportTrayNumber: 3,
+      reportAlignerFit: 1,
+      reportAttachments: AttachmentCheck.UNSURE,
     },
     create: {
       id: 'seed-scan-002',
@@ -197,6 +210,9 @@ async function main() {
       imageCount: 5,
       reviewedById: drChen.id,
       reviewedAt,
+      reportTrayNumber: 3,
+      reportAlignerFit: 1,
+      reportAttachments: AttachmentCheck.UNSURE,
     },
   });
   console.log(`  Scan (REVIEWED): ${scanReviewed.id}`);

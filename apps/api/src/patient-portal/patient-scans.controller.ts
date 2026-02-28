@@ -15,6 +15,7 @@ import { PatientAuthGuard } from '../common/guards/patient-auth.guard';
 import { CurrentPatient } from '../common/decorators/current-patient.decorator';
 import { PatientJwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { PatientPortalService } from './patient-portal.service';
+import { CreatePatientScanSessionDto } from './dto/create-scan-session.dto';
 
 @ApiTags('patient-portal')
 @ApiBearerAuth()
@@ -30,9 +31,12 @@ export class PatientScansController {
   }
 
   @Post('sessions')
-  @ApiOperation({ summary: 'Create a new scan session' })
-  createSession(@CurrentPatient() patient: PatientJwtPayload) {
-    return this.portalService.createScanSession(patient.sub);
+  @ApiOperation({ summary: 'Create a new scan session with self-report questionnaire' })
+  createSession(
+    @CurrentPatient() patient: PatientJwtPayload,
+    @Body() dto: CreatePatientScanSessionDto,
+  ) {
+    return this.portalService.createScanSession(patient.sub, dto);
   }
 
   @Post('upload-url')

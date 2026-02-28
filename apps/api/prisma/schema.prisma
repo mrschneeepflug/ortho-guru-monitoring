@@ -42,6 +42,12 @@ enum SenderType {
   SYSTEM
 }
 
+enum AttachmentCheck {
+  YES
+  NO
+  UNSURE
+}
+
 // ─── Practice (Tenant) ───────────────────────────────────
 
 model Practice {
@@ -140,6 +146,11 @@ model ScanSession {
   patientId    String
   status       ScanStatus @default(PENDING)
   imageCount   Int        @default(0)
+  reportTrayNumber   Int?
+  reportAlignerFit   Int?             // 1-3: Good, Fair, Poor
+  reportWearTimeHrs  Int?             // only when fit is Fair/Poor
+  reportAttachments  AttachmentCheck?
+  reportNotes        String?
   reviewedById String?
   reviewedAt   DateTime?
   createdAt    DateTime   @default(now())

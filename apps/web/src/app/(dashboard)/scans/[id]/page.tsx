@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useScan } from '@/lib/hooks/use-scans';
 import { ScanImageViewer } from '@/components/scans/scan-image-viewer';
 import { TaggingPanel } from '@/components/scans/tagging-panel';
+import { PatientReportCard } from '@/components/scans/patient-report-card';
 import { UploadImageDialog } from '@/components/scans/upload-image-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,8 @@ export default function ScanDetailPage() {
         <div className="lg:col-span-2">
           <ScanImageViewer images={scan.images ?? []} />
         </div>
-        <div>
+        <div className="space-y-4">
+          <PatientReportCard session={scan} />
           <TaggingPanel sessionId={scan.id} existingTags={scan.tagSet} />
         </div>
       </div>

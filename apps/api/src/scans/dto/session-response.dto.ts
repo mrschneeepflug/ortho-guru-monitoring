@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ScanStatus, ImageType } from '@prisma/client';
+import { ScanStatus, ImageType, AttachmentCheck } from '@prisma/client';
 
 export class ScanImageResponseDto {
   @ApiProperty()
@@ -88,6 +88,21 @@ export class SessionResponseDto {
 
   @ApiProperty()
   imageCount: number;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Patient self-report: current tray number' })
+  reportTrayNumber: number | null;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Patient self-report: aligner fit (1=Good, 2=Fair, 3=Poor)' })
+  reportAlignerFit: number | null;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Patient self-report: daily wear time in hours' })
+  reportWearTimeHrs: number | null;
+
+  @ApiPropertyOptional({ nullable: true, enum: AttachmentCheck, description: 'Patient self-report: attachments check' })
+  reportAttachments: AttachmentCheck | null;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Patient self-report: additional notes' })
+  reportNotes: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   reviewedById: string | null;

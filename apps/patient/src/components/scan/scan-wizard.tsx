@@ -7,18 +7,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AnglePrompt } from './angle-prompt';
 import { CameraCapture } from './camera-capture';
 import { UploadProgress } from './upload-progress';
+import { ScanQuestionnaire, INITIAL_QUESTIONNAIRE } from './scan-questionnaire';
+import type { QuestionnaireData } from './scan-questionnaire';
 import { useCreateScanSession, useUploadScanImage } from '@/lib/hooks/use-scan-upload';
 import { IMAGE_TYPES, IMAGE_TYPE_LABELS } from '@/lib/constants';
 import type { ScanImage } from '@/lib/types';
 
 type ImageType = ScanImage['imageType'];
 
-type WizardStep = 'intro' | 'capture' | 'review' | 'uploading' | 'done';
+type WizardStep = 'intro' | 'questionnaire' | 'capture' | 'review' | 'uploading' | 'done';
 
 export function ScanWizard() {
   const [step, setStep] = useState<WizardStep>('intro');
   const [currentAngleIndex, setCurrentAngleIndex] = useState(0);
   const [photos, setPhotos] = useState<Record<string, { file: File; preview: string }>>({});
+  const [questionnaire, setQuestionnaire] = useState<QuestionnaireData>(INITIAL_QUESTIONNAIRE);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +61,7 @@ export function ScanWizard() {
     if (currentAngleIndex > 0) {
       setCurrentAngleIndex((i) => i - 1);
     } else {
-      setStep('intro');
+      setStep('questionnaire');
     }
   };
 
@@ -68,7 +71,13 @@ export function ScanWizard() {
     setError(null);
 
     try {
-      const session = await createSession.mutateAsync();
+      const session = await createSession.mutateAsync({
+        trayNumber: questionnaire.trayNumber!,
+        alignerFit: questionnaire.alignerFit!,
+        wearTimeHrs: questionnaire.wearTimeHrs ?? undefined,
+        attachmentCheck: questionnaire.attachmentCheck!,
+        notes: questionnaire.notes || undefined,
+      });
       const types = IMAGE_TYPES.filter((t) => photos[t]);
 
       for (let i = 0; i < types.length; i++) {
@@ -91,6 +100,7 @@ export function ScanWizard() {
   const handleReset = () => {
     Object.values(photos).forEach((p) => URL.revokeObjectURL(p.preview));
     setPhotos({});
+    setQuestionnaire(INITIAL_QUESTIONNAIRE);
     setCurrentAngleIndex(0);
     setStep('intro');
     setUploadProgress(0);
@@ -107,7 +117,7 @@ export function ScanWizard() {
           </div>
           <h2 className="text-xl font-semibold">Take Your Scan Photos</h2>
           <p className="text-sm text-gray-600 max-w-xs mx-auto">
-            You'll take 5 photos of your teeth from different angles. Follow the on-screen guides for each photo.
+            You'll answer a few quick questions and then take 5 photos of your teeth from different angles.
           </p>
           <div className="grid grid-cols-5 gap-2 max-w-xs mx-auto">
             {IMAGE_TYPES.map((type) => (
@@ -121,11 +131,23 @@ export function ScanWizard() {
               </div>
             ))}
           </div>
-          <Button size="lg" className="w-full max-w-xs" onClick={() => setStep('capture')}>
+          <Button size="lg" className="w-full max-w-xs" onClick={() => setStep('questionnaire')}>
             Start <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </CardContent>
       </Card>
+    );
+  }
+
+  // ─── Questionnaire ───────────────────────────
+  if (step === 'questionnaire') {
+    return (
+      <ScanQuestionnaire
+        data={questionnaire}
+        onChange={setQuestionnaire}
+        onNext={() => setStep('capture')}
+        onBack={() => setStep('intro')}
+      />
     );
   }
 

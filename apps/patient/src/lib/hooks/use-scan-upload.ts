@@ -11,12 +11,20 @@ interface UploadUrlResponse {
   key: string;
 }
 
+export interface CreateSessionPayload {
+  trayNumber: number;
+  alignerFit: number;
+  wearTimeHrs?: number;
+  attachmentCheck: 'YES' | 'NO' | 'UNSURE';
+  notes?: string;
+}
+
 export function useCreateScanSession() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      const { data } = await apiClient.post<ApiResponse<ScanSession>>('/patient/scans/sessions');
+    mutationFn: async (payload: CreateSessionPayload) => {
+      const { data } = await apiClient.post<ApiResponse<ScanSession>>('/patient/scans/sessions', payload);
       return data.data;
     },
     onSuccess: () => {

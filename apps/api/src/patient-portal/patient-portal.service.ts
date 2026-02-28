@@ -6,6 +6,7 @@ import {
 import { ScanStatus, ImageType } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { StorageService } from '../common/storage/storage.service';
+import { CreatePatientScanSessionDto } from './dto/create-scan-session.dto';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -73,11 +74,16 @@ export class PatientPortalService {
     });
   }
 
-  async createScanSession(patientId: string) {
+  async createScanSession(patientId: string, dto: CreatePatientScanSessionDto) {
     return this.prisma.scanSession.create({
       data: {
         patientId,
         status: ScanStatus.PENDING,
+        reportTrayNumber: dto.trayNumber,
+        reportAlignerFit: dto.alignerFit,
+        reportWearTimeHrs: dto.wearTimeHrs ?? null,
+        reportAttachments: dto.attachmentCheck,
+        reportNotes: dto.notes ?? null,
       },
     });
   }

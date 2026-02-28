@@ -33,6 +33,12 @@ export const DETAIL_TAG_OPTIONS = [
   'Refinement needed',
 ] as const;
 
+export const ATTACHMENT_CHECK_LABELS: Record<string, string> = {
+  YES: 'Yes',
+  NO: 'No',
+  UNSURE: 'Unsure',
+};
+
 export const IMAGE_TYPES = [
   'FRONT',
   'LEFT',

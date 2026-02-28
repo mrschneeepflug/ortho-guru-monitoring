@@ -43,6 +43,11 @@ export interface ScanSession {
   patientId: string;
   status: 'PENDING' | 'REVIEWED' | 'FLAGGED';
   imageCount: number;
+  reportTrayNumber: number | null;
+  reportAlignerFit: number | null;
+  reportWearTimeHrs: number | null;
+  reportAttachments: 'YES' | 'NO' | 'UNSURE' | null;
+  reportNotes: string | null;
   reviewedById: string | null;
   reviewedAt: string | null;
   createdAt: string;
