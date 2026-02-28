@@ -3,13 +3,18 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, ScanStatus } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { SessionQueryDto } from './dto/session-query.dto';
+import { ScanReviewedEvent, ScanFlaggedEvent } from '../notifications/events';
 
 @Injectable()
 export class ScansService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   /**
    * Create a new scan session for a patient.
@@ -132,7 +137,7 @@ export class ScansService {
       data.reviewedBy = { connect: { id: reviewedById } };
     }
 
-    return this.prisma.scanSession.update({
+    const updated = await this.prisma.scanSession.update({
       where: { id },
       data,
       include: {
@@ -141,5 +146,19 @@ export class ScansService {
         tagSet: true,
       },
     });
+
+    if (status === ScanStatus.REVIEWED) {
+      this.eventEmitter.emit(
+        'scan.reviewed',
+        new ScanReviewedEvent(id, updated.patientId),
+      );
+    } else if (status === ScanStatus.FLAGGED) {
+      this.eventEmitter.emit(
+        'scan.flagged',
+        new ScanFlaggedEvent(id, updated.patientId),
+      );
+    }
+
+    return updated;
   }
 }

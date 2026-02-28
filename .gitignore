@@ -41,3 +41,5 @@ coverage/
 # PWA generated files
 apps/web/public/sw.js
 apps/web/public/workbox-*.js
+apps/patient/public/sw.js
+apps/patient/public/workbox-*.js

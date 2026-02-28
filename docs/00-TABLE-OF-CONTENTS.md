@@ -76,10 +76,10 @@
 | Metric | Count |
 |--------|-------|
 | Total source files (`.ts` / `.tsx`) | ~229 |
-| Backend modules | 10 (auth, patient-auth, practices, patients, scans, tagging, messaging, dashboard, patient-portal, common) |
-| API endpoints | 40+ |
-| Database models | 10 (Practice, Doctor, Patient, PatientInvite, ScanSession, ScanImage, TagSet, MessageThread, Message, AuditLog) |
+| Backend modules | 11 (auth, patient-auth, practices, patients, scans, tagging, messaging, dashboard, patient-portal, notifications, common) |
+| API endpoints | 45+ |
+| Database models | 11 (Practice, Doctor, Patient, PatientInvite, ScanSession, ScanImage, TagSet, MessageThread, Message, AuditLog, PushSubscription) |
 | Test files | 28 |
-| Test cases | ~150+ |
+| Test cases | ~165 |
 | Frontend apps | 2 (Doctor Dashboard on port 3001, Patient Portal on port 3002) |
 | Shared packages | 1 (packages/shared) |

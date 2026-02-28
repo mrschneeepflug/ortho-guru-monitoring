@@ -295,6 +295,82 @@ Doctor Dashboard                 API                              Database
      │<───────────────────────────│                                  │
 ```
 
+---
+
+## 6. Push Notification Flow
+
+### Subscription
+
+```
+Patient Portal                   API                              Database
+     │                            │                                  │
+     │  [Home page loads,         │                                  │
+     │   PushPrompt renders]      │                                  │
+     │                            │                                  │
+     │  Patient taps "Enable      │                                  │
+     │  Notifications"            │                                  │
+     │                            │                                  │
+     │  Notification.request      │                                  │
+     │  Permission() → "granted"  │                                  │
+     │                            │                                  │
+     │  pushManager.subscribe()   │                                  │
+     │  → PushSubscription        │                                  │
+     │                            │                                  │
+     │ POST /patient/push/        │                                  │
+     │   subscribe                │                                  │
+     │ { endpoint, keys }         │                                  │
+     │───────────────────────────>│                                  │
+     │                            │  Upsert PushSubscription         │
+     │                            │  (by endpoint)                   │
+     │                            │─────────────────────────────────>│
+     │  PushSubscription          │                                  │
+     │<───────────────────────────│                                  │
+```
+
+### Notification Delivery (e.g., Scan Reviewed)
+
+```
+Doctor Dashboard                 API                       Push Service    Patient Device
+     │                            │                            │                │
+     │ PATCH /scans/sessions/     │                            │                │
+     │   :id/status               │                            │                │
+     │ { status: "REVIEWED" }     │                            │                │
+     │───────────────────────────>│                            │                │
+     │                            │  Update ScanSession        │                │
+     │                            │  status=REVIEWED           │                │
+     │                            │                            │                │
+     │                            │  EventEmitter2.emit(       │                │
+     │                            │    'scan.reviewed',        │                │
+     │                            │    { sessionId, patientId })                │
+     │                            │         │                  │                │
+     │                            │  NotificationsListener     │                │
+     │                            │  @OnEvent('scan.reviewed') │                │
+     │                            │         │                  │                │
+     │                            │  NotificationsService      │                │
+     │                            │  .sendToPatient()          │                │
+     │                            │    Load PushSubscriptions  │                │
+     │                            │    for patientId           │                │
+     │                            │         │                  │                │
+     │                            │  webPush.sendNotification()│                │
+     │                            │────────────────────────────>                │
+     │                            │                            │  Push to device│
+     │                            │                            │───────────────>│
+     │                            │                            │                │
+     │                            │                            │     SW: push event
+     │                            │                            │     showNotification()
+     │                            │                            │     "Scan Reviewed"
+     │                            │                            │                │
+     │                            │                            │     User taps  │
+     │                            │                            │     notification│
+     │                            │                            │                │
+     │                            │                            │     SW: notificationclick
+     │                            │                            │     navigate → /home
+     │  ScanSession               │                            │                │
+     │<───────────────────────────│                            │                │
+```
+
+---
+
 ### Compliance Calculation Detail
 
 ```

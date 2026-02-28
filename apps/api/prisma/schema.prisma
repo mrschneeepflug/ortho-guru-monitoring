@@ -111,11 +111,12 @@ model Patient {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  practice       Practice        @relation(fields: [practiceId], references: [id])
-  doctor         Doctor          @relation(fields: [doctorId], references: [id])
-  scanSessions   ScanSession[]
-  messageThreads MessageThread[]
-  invites        PatientInvite[]
+  practice          Practice           @relation(fields: [practiceId], references: [id])
+  doctor            Doctor             @relation(fields: [doctorId], references: [id])
+  scanSessions      ScanSession[]
+  messageThreads    MessageThread[]
+  invites           PatientInvite[]
+  pushSubscriptions PushSubscription[]
 
   @@index([practiceId])
   @@index([doctorId])
@@ -263,4 +264,22 @@ model AuditLog {
   @@index([userId])
   @@index([timestamp])
   @@map("audit_logs")
+}
+
+// ─── Push Subscription ──────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  patientId String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("push_subscriptions")
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePatientProfile } from '@/lib/hooks/use-patient-profile';
 import { usePatientScans } from '@/lib/hooks/use-patient-scans';
+import { PushPrompt } from '@/components/push/push-prompt';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { STATUS_LABELS, STATUS_COLORS } from '@/lib/constants';
 
@@ -39,6 +40,8 @@ export default function HomePage() {
       <h2 className="text-xl font-bold">
         Hi, {profile.name.split(' ')[0]}!
       </h2>
+
+      <PushPrompt />
 
       {/* Treatment Progress */}
       <Card>

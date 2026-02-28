@@ -64,6 +64,7 @@ ortho-guru-monitoring/
 | **Database** | PostgreSQL | 16 |
 | **Cache** | Redis | 7 |
 | **Auth** | Passport JWT + bcryptjs | HS256 local / RS256 Auth0 |
+| **Push Notifications** | web-push + @nestjs/event-emitter | VAPID / Web Push Protocol |
 | **Storage** | AWS SDK v3 (S3-compatible) | OCI Object Storage |
 | **Image Processing** | Sharp | 0.34.x |
 | **AI** | Anthropic SDK | Claude Sonnet 4 |

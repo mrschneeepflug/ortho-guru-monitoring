@@ -39,6 +39,16 @@ When `AUTH0_DOMAIN` is set, the JWT strategy uses JWKS to validate RS256 tokens 
 
 When `OCI_S3_ENDPOINT` + access/secret keys are set, uploads go to cloud storage with presigned URLs. Otherwise, the system falls back to local filesystem storage in `uploads/`.
 
+### Web Push Notifications (Optional)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VAPID_PUBLIC_KEY` | — | VAPID public key (generate with `npx web-push generate-vapid-keys`) |
+| `VAPID_PRIVATE_KEY` | — | VAPID private key |
+| `VAPID_SUBJECT` | `mailto:admin@orthomonitor.dev` | VAPID subject (mailto: or https: URL) |
+
+When both VAPID keys are set, push notifications are enabled. Patients can subscribe via the patient portal and receive alerts when doctors review/flag scans or send messages. Without keys, the system logs a warning and all push operations are no-ops.
+
 ### AI Suggestions (Optional)
 
 | Variable | Default | Description |
@@ -84,6 +94,11 @@ JWT_SECRET="dev-jwt-secret-change-in-production"
 # OCI_S3_BUCKET="orthomonitor-scans"
 # OCI_S3_ACCESS_KEY="your-access-key"
 # OCI_S3_SECRET_KEY="your-secret-key"
+
+# Web Push Notifications (generate keys with: npx web-push generate-vapid-keys)
+# VAPID_PUBLIC_KEY="your-public-key"
+# VAPID_PRIVATE_KEY="your-private-key"
+# VAPID_SUBJECT="mailto:admin@orthomonitor.dev"
 
 # AI Suggestions (optional)
 # ANTHROPIC_API_KEY="sk-ant-..."
@@ -142,5 +157,6 @@ The system uses optional environment variables as implicit feature flags:
 | Auth0 SSO | `AUTH0_DOMAIN` is set |
 | Cloud file storage | `OCI_S3_ENDPOINT` + access keys are set |
 | AI tag suggestions | `ANTHROPIC_API_KEY` is set |
+| Push notifications | `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_KEY` are set |
 
-When these variables are absent, the system gracefully degrades: local auth only, local filesystem storage, and the AI suggest button is hidden/disabled.
+When these variables are absent, the system gracefully degrades: local auth only, local filesystem storage, AI suggest button is hidden/disabled, and push operations are no-ops.

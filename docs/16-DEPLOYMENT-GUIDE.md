@@ -61,6 +61,14 @@ npx pnpm --filter patient build
 | `AUTH0_DOMAIN` | `orthomonitor.auth0.com` | Enables Auth0 SSO |
 | `AUTH0_AUDIENCE` | `https://api.orthomonitor.dev` | API identifier |
 
+### Push Notifications (Optional but recommended)
+
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `VAPID_PUBLIC_KEY` | (generated) | Generate with `npx web-push generate-vapid-keys` |
+| `VAPID_PRIVATE_KEY` | (generated) | Keep secret, do not expose to frontend |
+| `VAPID_SUBJECT` | `mailto:admin@orthomonitor.dev` | Contact for push service |
+
 ### AI (Optional)
 
 | Variable | Example | Notes |
@@ -169,7 +177,7 @@ These features are planned but not yet implemented:
 | Mobile app (React Native) | Not started | Planned companion app |
 | Email notifications | Not started | Invite emails, scan reminders |
 | SMS/WhatsApp chatbot | Not started | Via `senderType: SYSTEM` messages |
-| Push notifications | Not started | PWA push for scan reminders |
+| Push notifications | **Done** | Web push via VAPID/web-push. Events: scan reviewed/flagged, doctor messages. |
 | Refresh tokens | Not started | Currently single JWT per session |
 | WebSocket real-time messaging | Not started | Currently polling-based |
 | Terraform infrastructure | Not started | AWS/OCI IaC |

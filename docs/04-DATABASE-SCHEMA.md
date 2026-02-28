@@ -16,17 +16,17 @@
        │             ┌──────────────┐              │
        └────────────<│   Patient    │──────────────┤
                      │              │              │
-                     └──┬───┬───┬──┘     ┌────────▼───────┐
-                        │   │   │        │  ScanSession    │
-               ┌────────┘   │   └─────┐  └──┬─────────────┘
-               │            │         │     │
-    ┌──────────▼──┐  ┌──────▼─────┐  │  ┌──▼──────────┐
-    │PatientInvite│  │MessageThread│  │  │  ScanImage   │
-    └─────────────┘  └──────┬─────┘  │  └─────────────┘
-                            │        │
-                     ┌──────▼─────┐  │  ┌─────────────┐
-                     │  Message    │  └─>│  TagSet      │
-                     └────────────┘     └─────────────┘
+                     └──┬───┬───┬──┬─┘   ┌────────▼───────┐
+                        │   │   │  │     │  ScanSession    │
+               ┌────────┘   │   │  └──┐  └──┬─────────────┘
+               │            │   │     │     │
+    ┌──────────▼──┐  ┌──────▼───▼──┐  │  ┌──▼──────────┐
+    │PatientInvite│  │MessageThread │  │  │  ScanImage   │
+    └─────────────┘  └──────┬──────┘  │  └─────────────┘
+                            │         │
+    ┌────────────────┐ ┌────▼──────┐  │  ┌─────────────┐
+    │PushSubscription│ │  Message   │  └─>│  TagSet      │
+    └────────────────┘ └───────────┘     └─────────────┘
 
                      ┌──────────────┐
                      │  AuditLog    │──> Practice (optional)
@@ -151,7 +151,7 @@ Updated via `PATCH /practices/:id/settings` (ADMIN only). Read by the patient po
 | `createdAt` | DateTime | @default(now()) | |
 | `updatedAt` | DateTime | @updatedAt | |
 
-**Relations:** practice, doctor, scanSessions[], messageThreads[], invites[]
+**Relations:** practice, doctor, scanSessions[], messageThreads[], invites[], pushSubscriptions[]
 **Indexes:** `practiceId`, `doctorId`
 **Table:** `patients`
 
@@ -293,6 +293,27 @@ One-to-one with ScanSession. Created when a doctor reviews a scan.
 **Relations:** practice? (Practice)
 **Indexes:** `practiceId`, `userId`, `timestamp`
 **Table:** `audit_logs`
+
+---
+
+### PushSubscription
+
+Stores web push subscription endpoints for patient notifications.
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | String | @id @default(cuid()) | Primary key |
+| `patientId` | String | FK → Patient | Which patient |
+| `endpoint` | String | @unique | Push service endpoint URL |
+| `p256dh` | String | | Client public key |
+| `auth` | String | | Client auth secret |
+| `userAgent` | String? | | Browser user agent |
+| `createdAt` | DateTime | @default(now()) | |
+| `updatedAt` | DateTime | @updatedAt | |
+
+**Relations:** patient (onDelete: Cascade)
+**Indexes:** `patientId`
+**Table:** `push_subscriptions`
 
 ---
 

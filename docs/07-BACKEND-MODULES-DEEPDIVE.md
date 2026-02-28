@@ -4,10 +4,12 @@
 
 ```
 AppModule
+├── EventEmitterModule.forRoot()
 ├── CommonModule (global guards, interceptors, filters)
 │   └── PrismaModule (global)
 ├── StorageModule (global)
 ├── AiModule (global)
+├── NotificationsModule (global — push service + event listeners)
 ├── AuthModule
 │   ├── PassportModule
 │   └── JwtModule (7-day)
@@ -23,7 +25,7 @@ AppModule
 └── DashboardModule
 ```
 
-Global modules (PrismaModule, StorageModule, AiModule) are available everywhere without explicit imports.
+Global modules (PrismaModule, StorageModule, AiModule, NotificationsModule) are available everywhere without explicit imports.
 
 ---
 
@@ -105,15 +107,16 @@ CRUD operations for patients. Doctor-facing endpoints.
 ## Patient Portal Module
 
 **Path:** `apps/api/src/patient-portal/`
-**Files:** `patient-portal.module.ts`, `patient-portal.controller.ts`, `patient-scans.controller.ts`, `patient-messages.controller.ts`, `patient-portal.service.ts`
+**Files:** `patient-portal.module.ts`, `patient-portal.controller.ts`, `patient-scans.controller.ts`, `patient-messages.controller.ts`, `patient-push.controller.ts`, `patient-portal.service.ts`
 
 ### Purpose
-Patient-facing API endpoints: profile, scan uploads, and messaging. All guarded by `PatientAuthGuard`.
+Patient-facing API endpoints: profile, scan uploads, messaging, and push notification subscription. All guarded by `PatientAuthGuard` (except public VAPID key endpoint).
 
 ### Controllers
 - **PatientPortalController** (`/patient/profile`) — profile with lastScanDate and nextScanDue
 - **PatientScansController** (`/patient/scans`) — list scans, create sessions, upload, confirm, get URLs
 - **PatientMessagesController** (`/patient/messages`) — threads, messages, send, mark read
+- **PatientPushController** (`/patient/push`) — VAPID public key (public), subscribe, unsubscribe
 
 ### Service Methods
 
@@ -160,7 +163,7 @@ Scan session management, image upload/download, and thumbnail generation.
 | `createSession(patientId, practiceId)` | Create PENDING session |
 | `findAll(practiceId, query)` | Paginated list with status/patient filters |
 | `findOne(id, practiceId)` | Session with images and tagSet |
-| `updateStatus(id, status, reviewedById, practiceId)` | Update status, set reviewedAt/By if REVIEWED |
+| `updateStatus(id, status, reviewedById, practiceId)` | Update status, set reviewedAt/By if REVIEWED, emit `scan.reviewed` or `scan.flagged` event |
 
 **UploadService:**
 
@@ -239,13 +242,65 @@ Doctor-patient messaging with threads, messages, and unread tracking.
 | `createThread(dto, practiceId)` | Create thread after verifying patient is in practice |
 | `findAllThreads(practiceId)` | Threads with unreadCount and lastMessage |
 | `findThread(threadId, practiceId)` | Thread with all messages ordered asc |
-| `sendMessage(dto, userId, userRole, practiceId)` | Create message with auto-detected senderType |
+| `sendMessage(dto, userId, userRole, practiceId)` | Create message with auto-detected senderType, emit `message.sent` event for doctor/system messages |
 | `markAsRead(messageId, userId, practiceId)` | Set readAt timestamp |
 
 ### Design Decisions
 - `senderType` is auto-determined from the JWT role if not explicitly provided
 - Unread count is calculated as count of messages where `readAt IS NULL` in a given thread
 - Threads are sorted by `updatedAt DESC` (most recent activity first)
+
+---
+
+## Notifications Module
+
+**Path:** `apps/api/src/notifications/`
+**Files:** `notifications.module.ts`, `notifications.service.ts`, `notifications.listener.ts`, `events.ts`, `dto/subscribe-push.dto.ts`
+
+### Purpose
+Global module for web push notifications. Listens to domain events emitted by other modules and sends push notifications to subscribed patients.
+
+### Event Flow
+
+```
+ScansService / MessagingService
+  │  emit('scan.reviewed' | 'scan.flagged' | 'message.sent')
+  ▼
+NotificationsListener (@OnEvent handlers)
+  │  Builds notification payload (title, body, url, tag)
+  ▼
+NotificationsService.sendToPatient(patientId, payload)
+  │  Loads PushSubscription records for patient
+  │  Sends via web-push library
+  ▼
+Browser Push Service → Service Worker → showNotification()
+```
+
+### Events
+
+| Event | Emitted By | Trigger |
+|-------|-----------|---------|
+| `scan.reviewed` | `ScansService.updateStatus()` | Status changed to REVIEWED |
+| `scan.flagged` | `ScansService.updateStatus()` | Status changed to FLAGGED |
+| `message.sent` | `MessagingService.sendMessage()` | Doctor or system sends a message |
+
+### Service Methods
+
+| Method | Description |
+|--------|-------------|
+| `onModuleInit()` | Reads VAPID env vars, calls `webPush.setVapidDetails()`. Logs warning if not configured. |
+| `getVapidPublicKey()` | Returns the VAPID public key (or null) |
+| `subscribe(patientId, subscription, userAgent?)` | Upserts `PushSubscription` by endpoint |
+| `unsubscribe(patientId, endpoint)` | Deletes matching subscription |
+| `sendToPatient(patientId, payload)` | Finds all subscriptions, sends via `webPush.sendNotification()`. Auto-deletes stale subscriptions on 410/404. |
+
+### Design Decisions
+- `@Global()` module so `NotificationsService` is injectable everywhere without explicit imports
+- Uses `@nestjs/event-emitter` for decoupled event handling — zero changes to existing service method signatures
+- Graceful degradation: no VAPID keys → logs warning, all sends are no-ops
+- Stale subscription cleanup: expired push endpoints (410/404) are automatically deleted
+- `message.sent` only fires for DOCTOR/SYSTEM sender types (not PATIENT — patients don't need to be notified of their own messages)
+- Message preview is truncated to 100 characters
 
 ---
 

@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MessagingService } from './messaging.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { createMockPrismaService, MockPrismaService } from '../test/prisma-mock.factory';
@@ -7,12 +8,16 @@ import { createMockPrismaService, MockPrismaService } from '../test/prisma-mock.
 describe('MessagingService', () => {
   let service: MessagingService;
   let prisma: MockPrismaService;
+  let eventEmitter: { emit: jest.Mock };
 
   beforeEach(async () => {
+    eventEmitter = { emit: jest.fn() };
+
     const module = await Test.createTestingModule({
       providers: [
         MessagingService,
         { provide: PrismaService, useFactory: createMockPrismaService },
+        { provide: EventEmitter2, useValue: eventEmitter },
       ],
     }).compile();
 
@@ -118,6 +123,7 @@ describe('MessagingService', () => {
     it('should create message in thread', async () => {
       prisma.messageThread.findFirst.mockResolvedValueOnce({
         id: 'th1',
+        patientId: 'p1',
         patient: { practiceId: 'practice1' },
       });
       prisma.message.create.mockResolvedValueOnce({
@@ -134,11 +140,13 @@ describe('MessagingService', () => {
       );
 
       expect(result.content).toBe('Hello');
+      expect(eventEmitter.emit).toHaveBeenCalledWith('message.sent', expect.objectContaining({ threadId: 'th1', patientId: 'p1' }));
     });
 
     it('should default senderType to DOCTOR', async () => {
       prisma.messageThread.findFirst.mockResolvedValueOnce({
         id: 'th1',
+        patientId: 'p1',
         patient: { practiceId: 'practice1' },
       });
       prisma.message.create.mockResolvedValueOnce({ id: 'm1' });

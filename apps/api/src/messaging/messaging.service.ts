@@ -3,14 +3,19 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateThreadDto } from './dto/create-thread.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { SenderType } from '@prisma/client';
+import { MessageSentEvent } from '../notifications/events';
 
 @Injectable()
 export class MessagingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   /**
    * Create a new message thread for a patient.
@@ -138,7 +143,7 @@ export class MessagingService {
 
     const senderType = dto.senderType ?? SenderType.DOCTOR;
 
-    return this.prisma.message.create({
+    const message = await this.prisma.message.create({
       data: {
         threadId: dto.threadId,
         senderType,
@@ -146,6 +151,19 @@ export class MessagingService {
         content: dto.content,
       },
     });
+
+    if (senderType === SenderType.DOCTOR || senderType === SenderType.SYSTEM) {
+      const preview =
+        dto.content.length > 100
+          ? dto.content.slice(0, 100) + '...'
+          : dto.content;
+      this.eventEmitter.emit(
+        'message.sent',
+        new MessageSentEvent(dto.threadId, thread.patientId, preview),
+      );
+    }
+
+    return message;
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ScansService } from './scans.service';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { createMockPrismaService, MockPrismaService } from '../test/prisma-mock.factory';
@@ -7,12 +8,16 @@ import { createMockPrismaService, MockPrismaService } from '../test/prisma-mock.
 describe('ScansService', () => {
   let service: ScansService;
   let prisma: MockPrismaService;
+  let eventEmitter: { emit: jest.Mock };
 
   beforeEach(async () => {
+    eventEmitter = { emit: jest.fn() };
+
     const module = await Test.createTestingModule({
       providers: [
         ScansService,
         { provide: PrismaService, useFactory: createMockPrismaService },
+        { provide: EventEmitter2, useValue: eventEmitter },
       ],
     }).compile();
 
@@ -89,7 +94,7 @@ describe('ScansService', () => {
   describe('updateStatus', () => {
     it('should set reviewedAt and reviewedBy when status is REVIEWED', async () => {
       prisma.scanSession.findFirst.mockResolvedValueOnce({ id: 's1' });
-      prisma.scanSession.update.mockResolvedValueOnce({ id: 's1', status: 'REVIEWED' });
+      prisma.scanSession.update.mockResolvedValueOnce({ id: 's1', status: 'REVIEWED', patientId: 'p1' });
 
       await service.updateStatus('s1', 'REVIEWED' as any, 'd1', 'pr1');
 
@@ -97,16 +102,18 @@ describe('ScansService', () => {
       expect(updateCall.data.status).toBe('REVIEWED');
       expect(updateCall.data.reviewedAt).toBeInstanceOf(Date);
       expect(updateCall.data.reviewedBy).toEqual({ connect: { id: 'd1' } });
+      expect(eventEmitter.emit).toHaveBeenCalledWith('scan.reviewed', expect.objectContaining({ sessionId: 's1', patientId: 'p1' }));
     });
 
     it('should not set reviewedAt for non-REVIEWED status', async () => {
       prisma.scanSession.findFirst.mockResolvedValueOnce({ id: 's1' });
-      prisma.scanSession.update.mockResolvedValueOnce({ id: 's1', status: 'FLAGGED' });
+      prisma.scanSession.update.mockResolvedValueOnce({ id: 's1', status: 'FLAGGED', patientId: 'p1' });
 
       await service.updateStatus('s1', 'FLAGGED' as any, 'd1', 'pr1');
 
       const updateCall = prisma.scanSession.update.mock.calls[0][0];
       expect(updateCall.data.reviewedAt).toBeUndefined();
+      expect(eventEmitter.emit).toHaveBeenCalledWith('scan.flagged', expect.objectContaining({ sessionId: 's1', patientId: 'p1' }));
     });
 
     it('should throw NotFoundException when session not found', async () => {

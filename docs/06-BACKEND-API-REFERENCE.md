@@ -483,3 +483,36 @@ Send a message. senderType auto-set to PATIENT.
 Mark a message as read.
 
 **Response:** `Message`
+
+---
+
+## Patient Push Notifications Module
+
+### `GET /patient/push/vapid-public-key` `@Public`
+Get the VAPID public key for push subscription.
+
+**Response:** `{ key: string | null }`
+
+### `POST /patient/push/subscribe`
+Subscribe to push notifications.
+
+**Auth:** Patient JWT (PatientAuthGuard)
+**Body:**
+```json
+{
+  "endpoint": "string (required)",
+  "keys": { "p256dh": "string (required)", "auth": "string (required)" },
+  "userAgent?": "string"
+}
+```
+**Response:** `PushSubscription`
+
+### `DELETE /patient/push/unsubscribe`
+Unsubscribe from push notifications.
+
+**Auth:** Patient JWT (PatientAuthGuard)
+**Body:**
+```json
+{ "endpoint": "string (required)" }
+```
+**Response:** `{ count: number }`

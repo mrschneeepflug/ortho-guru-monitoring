@@ -28,6 +28,8 @@ apps/patient/src/
 │   ├── patient-header.tsx
 │   ├── scan/                           # Scan wizard components
 │   ├── messages/                       # Message components
+│   ├── push/                           # Push notification components
+│   │   └── push-prompt.tsx             # Opt-in notification banner
 │   └── ui/                             # shadcn-style components
 ├── lib/
 │   ├── api-client.ts
@@ -81,14 +83,18 @@ Invite-based registration flow:
 ### Home (`(app)/home/page.tsx`)
 Patient's treatment overview:
 
-1. **Treatment Progress card:**
+1. **Push Notification Prompt** (dismissible banner):
+   - Shows when: push supported + not subscribed + permission not denied + not dismissed
+   - Bell icon, "Stay updated" heading, "Enable Notifications" button
+   - Dismiss saves to `push_prompt_dismissed` in localStorage
+2. **Treatment Progress card:**
    - Stage X of Y progress bar
    - Treatment type and aligner brand
-2. **Next Scan Due card:**
+3. **Next Scan Due card:**
    - Shows due date (calculated from last scan + scanFrequency)
    - Red ring indicator if overdue
    - "No scans yet" if no history
-3. **Recent Scans list:**
+4. **Recent Scans list:**
    - Last 5 scan sessions
    - Date, image count, status badge
 
@@ -199,6 +205,11 @@ Upload process:
 | `ThreadListItem` | Circle icon, subject, last message preview, unread badge, time |
 | `MessageBubble` | Doctor (left, gray), Patient (right, blue), System (center, gray). Timestamp. `whitespace-pre-wrap`. |
 
+### Push Notification Components
+| Component | Description |
+|-----------|-------------|
+| `PushPrompt` | Dismissible opt-in card on home page. Medical-blue theme with Bell icon. Hides when: unsupported, already subscribed, permission denied, or dismissed. |
+
 ---
 
 ## Hooks
@@ -209,6 +220,7 @@ Upload process:
 | `use-patient-scans.ts` | `usePatientScans()` | `GET /patient/scans` |
 | `use-patient-messages.ts` | `usePatientThreads()`, `usePatientThread()`, `useSendPatientMessage()`, `useMarkMessageRead()` | `/patient/messages/*` |
 | `use-scan-upload.ts` | `useCreateScanSession()`, `useUploadScanImage()` | `/patient/scans/*` |
+| `use-push-notifications.ts` | `usePushNotifications()` → `{ permission, isSubscribed, isLoading, isSupported, subscribe, unsubscribe }` | `/patient/push/*` |
 
 ---
 
@@ -228,7 +240,12 @@ Key constants:
 
 **Next.js config** (`apps/patient/next.config.js`):
 - PWA via `next-pwa` (disabled in dev)
+- `customWorkerDir: 'worker'` — merges custom push handlers into the generated service worker
 - API rewrites: `/api/v1/*` → `http://localhost:8085/api/v1/*`
+
+**Custom Service Worker** (`apps/patient/worker/index.ts`):
+- `push` event: parses JSON payload `{title, body, url, tag}`, calls `showNotification()` with icon, badge, vibrate
+- `notificationclick` event: closes notification, focuses/navigates existing client or opens new window to `payload.url`
 
 **Dependencies:** Next.js 14.1, React 18, React Query 5.17, Axios, Tailwind CSS, lucide-react, date-fns
 
