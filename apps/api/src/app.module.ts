@@ -13,6 +13,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PatientAuthModule } from './patient-auth/patient-auth.module';
 import { PatientPortalModule } from './patient-portal/patient-portal.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RefreshTokenModule } from './common/refresh-token/refresh-token.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     PatientAuthModule,
     PatientPortalModule,
     NotificationsModule,
+    RefreshTokenModule,
   ],
 })
 export class AppModule {}

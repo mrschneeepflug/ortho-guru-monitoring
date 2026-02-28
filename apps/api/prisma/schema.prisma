@@ -266,6 +266,28 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+// ─── Refresh Token ─────────────────────────────────────
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  familyId   String
+  userId     String
+  userType   String    // "doctor" | "patient"
+  practiceId String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String?
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([familyId])
+  @@index([userId, userType])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
 // ─── Push Subscription ──────────────────────────────────
 
 model PushSubscription {

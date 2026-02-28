@@ -8,12 +8,19 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { RefreshTokenService } from '../common/refresh-token/refresh-token.service';
+
+interface TokenMeta {
+  userAgent?: string;
+  ipAddress?: string;
+}
 
 @Injectable()
 export class PatientAuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly refreshTokenService: RefreshTokenService,
   ) {}
 
   async createInvite(patientId: string, email: string | undefined, practiceId: string) {
@@ -63,7 +70,7 @@ export class PatientAuthService {
     };
   }
 
-  async register(token: string, email: string, password: string) {
+  async register(token: string, email: string, password: string, meta?: TokenMeta) {
     const invite = await this.prisma.patientInvite.findUnique({
       where: { token },
       include: { patient: true },
@@ -103,14 +110,19 @@ export class PatientAuthService {
     });
 
     const accessToken = this.signToken(patient);
+    const refresh = await this.refreshTokenService.createRefreshToken(
+      patient.id, 'patient', patient.practiceId, undefined, meta,
+    );
 
     return {
       accessToken,
+      refreshToken: refresh.rawToken,
+      refreshExpiresAt: refresh.expiresAt,
       patient: this.toProfile(patient),
     };
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, meta?: TokenMeta) {
     const patient = await this.prisma.patient.findUnique({
       where: { email },
     });
@@ -125,11 +137,43 @@ export class PatientAuthService {
     }
 
     const accessToken = this.signToken(patient);
+    const refresh = await this.refreshTokenService.createRefreshToken(
+      patient.id, 'patient', patient.practiceId, undefined, meta,
+    );
 
     return {
       accessToken,
+      refreshToken: refresh.rawToken,
+      refreshExpiresAt: refresh.expiresAt,
       patient: this.toProfile(patient),
     };
+  }
+
+  async refreshAccessToken(rawToken: string, meta?: TokenMeta) {
+    const rotated = await this.refreshTokenService.rotateRefreshToken(rawToken, meta);
+
+    const patient = await this.prisma.patient.findUnique({
+      where: { id: rotated.userId },
+    });
+
+    if (!patient) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    const accessToken = this.signToken(patient);
+
+    return {
+      accessToken,
+      refreshToken: rotated.rawToken,
+      refreshExpiresAt: rotated.expiresAt,
+    };
+  }
+
+  async logout(rawToken: string): Promise<void> {
+    const familyId = await this.refreshTokenService.getFamilyIdByToken(rawToken);
+    if (familyId) {
+      await this.refreshTokenService.revokeFamily(familyId);
+    }
   }
 
   async getProfile(patientId: string) {

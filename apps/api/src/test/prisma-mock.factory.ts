@@ -6,7 +6,9 @@ type MockModel = {
   findUnique: jest.Mock;
   create: jest.Mock;
   update: jest.Mock;
+  updateMany: jest.Mock;
   delete: jest.Mock;
+  deleteMany: jest.Mock;
   count: jest.Mock;
 };
 
@@ -17,7 +19,9 @@ function createMockModel(): MockModel {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
     delete: jest.fn(),
+    deleteMany: jest.fn(),
     count: jest.fn(),
   };
 }
@@ -32,7 +36,8 @@ export type MockPrismaService = {
     | 'tagSet'
     | 'messageThread'
     | 'message'
-    | 'auditLog']: MockModel;
+    | 'auditLog'
+    | 'refreshToken']: MockModel;
 } & {
   $transaction: jest.Mock;
 };
@@ -48,6 +53,7 @@ export function createMockPrismaService(): MockPrismaService {
     messageThread: createMockModel(),
     message: createMockModel(),
     auditLog: createMockModel(),
+    refreshToken: createMockModel(),
     $transaction: jest.fn(),
   };
 

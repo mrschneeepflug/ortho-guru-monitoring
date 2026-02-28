@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { RefreshTokenService } from '../common/refresh-token/refresh-token.service';
 import { createMockPrismaService, MockPrismaService } from '../test/prisma-mock.factory';
 
 jest.mock('bcryptjs', () => ({
@@ -16,15 +17,31 @@ describe('AuthService', () => {
   let service: AuthService;
   let prisma: MockPrismaService;
   let jwtService: { sign: jest.Mock };
+  let refreshTokenService: {
+    createRefreshToken: jest.Mock;
+    rotateRefreshToken: jest.Mock;
+    revokeFamily: jest.Mock;
+    getFamilyIdByToken: jest.Mock;
+  };
 
   beforeEach(async () => {
     jwtService = { sign: jest.fn().mockReturnValue('mock-jwt-token') };
+    refreshTokenService = {
+      createRefreshToken: jest.fn().mockResolvedValue({
+        rawToken: 'mock-refresh-token',
+        expiresAt: new Date('2099-01-01'),
+      }),
+      rotateRefreshToken: jest.fn(),
+      revokeFamily: jest.fn(),
+      getFamilyIdByToken: jest.fn(),
+    };
 
     const module = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: PrismaService, useFactory: createMockPrismaService },
         { provide: JwtService, useValue: jwtService },
+        { provide: RefreshTokenService, useValue: refreshTokenService },
       ],
     }).compile();
 
@@ -70,7 +87,7 @@ describe('AuthService', () => {
       await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
     });
 
-    it('should return JWT token on successful registration', async () => {
+    it('should return JWT token and refresh token on successful registration', async () => {
       prisma.doctor.findUnique.mockResolvedValueOnce(null);
       prisma.doctor.create.mockResolvedValueOnce({
         id: 'd1',
@@ -90,6 +107,10 @@ describe('AuthService', () => {
         type: 'doctor',
       });
       expect(result.accessToken).toBe('mock-jwt-token');
+      expect(result.refreshToken).toBe('mock-refresh-token');
+      expect(refreshTokenService.createRefreshToken).toHaveBeenCalledWith(
+        'd1', 'doctor', 'p1', undefined, undefined,
+      );
     });
   });
 
@@ -112,6 +133,7 @@ describe('AuthService', () => {
 
       expect(result.accessToken).toBe('mock-jwt-token');
       expect(result.user.id).toBe('d1');
+      expect(result.refreshToken).toBe('mock-refresh-token');
     });
 
     it('should throw UnauthorizedException for unknown email', async () => {
@@ -133,6 +155,62 @@ describe('AuthService', () => {
 
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
       await expect(service.login(loginDto)).rejects.toThrow();
+    });
+  });
+
+  describe('refreshAccessToken', () => {
+    it('should rotate and return new access token', async () => {
+      refreshTokenService.rotateRefreshToken.mockResolvedValueOnce({
+        rawToken: 'new-refresh-token',
+        userId: 'd1',
+        userType: 'doctor',
+        practiceId: 'p1',
+        expiresAt: new Date('2099-01-01'),
+      });
+      prisma.doctor.findUnique.mockResolvedValueOnce({
+        id: 'd1',
+        email: 'test@example.com',
+        role: 'DOCTOR',
+        practiceId: 'p1',
+      });
+
+      const result = await service.refreshAccessToken('old-refresh-token');
+
+      expect(result.accessToken).toBe('mock-jwt-token');
+      expect(result.refreshToken).toBe('new-refresh-token');
+    });
+
+    it('should throw if user no longer exists', async () => {
+      refreshTokenService.rotateRefreshToken.mockResolvedValueOnce({
+        rawToken: 'new-refresh-token',
+        userId: 'deleted-user',
+        userType: 'doctor',
+        practiceId: 'p1',
+        expiresAt: new Date('2099-01-01'),
+      });
+      prisma.doctor.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.refreshAccessToken('some-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+  });
+
+  describe('logout', () => {
+    it('should revoke family when token exists', async () => {
+      refreshTokenService.getFamilyIdByToken.mockResolvedValueOnce('fam1');
+
+      await service.logout('some-token');
+
+      expect(refreshTokenService.revokeFamily).toHaveBeenCalledWith('fam1');
+    });
+
+    it('should be a no-op when token not found', async () => {
+      refreshTokenService.getFamilyIdByToken.mockResolvedValueOnce(null);
+
+      await service.logout('unknown-token');
+
+      expect(refreshTokenService.revokeFamily).not.toHaveBeenCalled();
     });
   });
 

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import apiClient from './api-client';
 
 const TOKEN_KEY = 'ortho_token';
@@ -24,7 +25,17 @@ export async function login(credentials: LoginCredentials) {
   return user as AuthUser;
 }
 
-export function logout() {
+export async function logout() {
+  // Best-effort server-side logout to revoke refresh token family
+  try {
+    await axios.post(
+      `${apiClient.defaults.baseURL}/auth/logout`,
+      {},
+      { withCredentials: true },
+    );
+  } catch {
+    // Ignore — clear local state regardless
+  }
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
   window.location.href = '/login';

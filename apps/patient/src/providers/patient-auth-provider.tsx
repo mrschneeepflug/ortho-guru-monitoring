@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import axios from 'axios';
 import apiClient from '@/lib/api-client';
 import type { AuthResponse } from '@/lib/types';
 
@@ -70,7 +71,17 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
     router.replace('/home');
   }, [router]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Best-effort server-side logout to revoke refresh token family
+    try {
+      await axios.post(
+        `${apiClient.defaults.baseURL}/patient-auth/logout`,
+        {},
+        { withCredentials: true },
+      );
+    } catch {
+      // Ignore — clear local state regardless
+    }
     localStorage.removeItem('patient_token');
     localStorage.removeItem('patient_data');
     setPatient(null);

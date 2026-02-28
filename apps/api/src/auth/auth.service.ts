@@ -4,9 +4,15 @@ import * as bcrypt from 'bcryptjs';
 import { DoctorRole } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { RefreshTokenService } from '../common/refresh-token/refresh-token.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+
+interface TokenMeta {
+  userAgent?: string;
+  ipAddress?: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -15,9 +21,10 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly refreshTokenService: RefreshTokenService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponseDto> {
+  async register(dto: RegisterDto, meta?: TokenMeta): Promise<AuthResponseDto & { refreshToken: string; refreshExpiresAt: Date }> {
     const existing = await this.prisma.doctor.findUnique({
       where: { email: dto.email },
     });
@@ -39,9 +46,14 @@ export class AuthService {
     });
 
     const accessToken = this.generateToken(doctor);
+    const { rawToken, expiresAt } = await this.refreshTokenService.createRefreshToken(
+      doctor.id, 'doctor', doctor.practiceId, undefined, meta,
+    );
 
     return {
       accessToken,
+      refreshToken: rawToken,
+      refreshExpiresAt: expiresAt,
       user: {
         id: doctor.id,
         email: doctor.email,
@@ -52,7 +64,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto): Promise<AuthResponseDto> {
+  async login(dto: LoginDto, meta?: TokenMeta): Promise<AuthResponseDto & { refreshToken: string; refreshExpiresAt: Date }> {
     const doctor = await this.prisma.doctor.findUnique({
       where: { email: dto.email },
     });
@@ -72,9 +84,14 @@ export class AuthService {
     }
 
     const accessToken = this.generateToken(doctor);
+    const { rawToken, expiresAt } = await this.refreshTokenService.createRefreshToken(
+      doctor.id, 'doctor', doctor.practiceId, undefined, meta,
+    );
 
     return {
       accessToken,
+      refreshToken: rawToken,
+      refreshExpiresAt: expiresAt,
       user: {
         id: doctor.id,
         email: doctor.email,
@@ -83,6 +100,34 @@ export class AuthService {
         practiceId: doctor.practiceId,
       },
     };
+  }
+
+  async refreshAccessToken(rawToken: string, meta?: TokenMeta) {
+    const rotated = await this.refreshTokenService.rotateRefreshToken(rawToken, meta);
+
+    // Load full user to generate fresh access token
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { id: rotated.userId },
+    });
+
+    if (!doctor) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    const accessToken = this.generateToken(doctor);
+
+    return {
+      accessToken,
+      refreshToken: rotated.rawToken,
+      refreshExpiresAt: rotated.expiresAt,
+    };
+  }
+
+  async logout(rawToken: string): Promise<void> {
+    const familyId = await this.refreshTokenService.getFamilyIdByToken(rawToken);
+    if (familyId) {
+      await this.refreshTokenService.revokeFamily(familyId);
+    }
   }
 
   async getMe(doctorId: string) {
