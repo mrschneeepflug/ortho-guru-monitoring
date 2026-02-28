@@ -13,6 +13,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PatientAuthModule } from './patient-auth/patient-auth.module';
 import { PatientPortalModule } from './patient-portal/patient-portal.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 import { RefreshTokenModule } from './common/refresh-token/refresh-token.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { RefreshTokenModule } from './common/refresh-token/refresh-token.module'
     PatientAuthModule,
     PatientPortalModule,
     NotificationsModule,
+    WebhooksModule,
     RefreshTokenModule,
   ],
 })

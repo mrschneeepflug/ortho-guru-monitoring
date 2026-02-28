@@ -61,6 +61,7 @@
 | 14 | [14-TESTING-GUIDE.md](./14-TESTING-GUIDE.md) | Testing Guide | Test stack, patterns, mocking, coverage |
 | 15 | [15-DATA-FLOWS.md](./15-DATA-FLOWS.md) | Data Flows | End-to-end flows: invite, scan, review, messaging |
 | 16 | [16-DEPLOYMENT-GUIDE.md](./16-DEPLOYMENT-GUIDE.md) | Deployment Guide | Build, production config, planned infrastructure |
+| 17 | [17-WEBHOOK-CONNECTOR-SPEC.md](./17-WEBHOOK-CONNECTOR-SPEC.md) | Webhook Connector Spec | Outbound webhook contract for Bissig-Copilot integration |
 
 ---
 
