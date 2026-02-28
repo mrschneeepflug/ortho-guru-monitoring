@@ -53,14 +53,19 @@ Patient Portal                   API                              Database
      │                            │  2. bcrypt.hash(password)        │
      │                            │  3. Update Patient (email, hash) │
      │                            │  4. Mark invite usedAt=now()     │
-     │                            │  5. Sign JWT (30-day, type:      │
-     │                            │     'patient')                   │
+     │                            │  5. Sign JWT (1-hour access,     │
+     │                            │     type: 'patient')             │
+     │                            │  6. Create refresh token         │
+     │                            │     (30-day, httpOnly cookie)    │
      │                            │─────────────────────────────────>│
      │                            │                                  │
      │ { accessToken, patient }   │                                  │
+     │ + Set-Cookie: patient_     │                                  │
+     │   refresh (httpOnly)       │                                  │
      │<───────────────────────────│                                  │
      │                            │                                  │
-     │  Save to localStorage      │                                  │
+     │  Save accessToken to       │                                  │
+     │  localStorage              │                                  │
      │  Redirect to /home         │                                  │
 ```
 

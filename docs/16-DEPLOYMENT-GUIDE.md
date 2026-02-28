@@ -178,9 +178,9 @@ These features are planned but not yet implemented:
 | Email notifications | Not started | Invite emails, scan reminders |
 | SMS/WhatsApp chatbot | Not started | Via `senderType: SYSTEM` messages |
 | Push notifications | **Done** | Web push via VAPID/web-push. Events: scan reviewed/flagged, doctor messages. |
-| Refresh tokens | Not started | Currently single JWT per session |
+| Refresh tokens | **Done** | Rotate-on-use with token families, Redis + PostgreSQL, httpOnly cookies, silent frontend refresh |
 | WebSocket real-time messaging | Not started | Currently polling-based |
 | Terraform infrastructure | Not started | AWS/OCI IaC |
 | CI/CD pipeline | Not started | GitHub Actions or similar |
 | Rate limiting | Not started | Express rate-limit or NestJS throttler |
-| Redis caching | Not started | Redis running but unused currently |
+| Redis caching | Partial | Redis used for refresh token hot-path lookups |

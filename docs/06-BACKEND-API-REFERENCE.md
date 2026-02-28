@@ -8,6 +8,8 @@
 ### Authentication
 All endpoints require `Authorization: Bearer <token>` unless marked `@Public`.
 
+**Refresh tokens** are sent as httpOnly cookies (`ortho_refresh` for doctors, `patient_refresh` for patients) — path-scoped to their respective auth endpoints. Clients must use `withCredentials: true` (or `credentials: 'include'`).
+
 ### Response Wrapper
 All successful responses are wrapped:
 ```json
@@ -66,6 +68,21 @@ Register a new doctor.
 **Response:** `{ accessToken: string, user: { id, email, name, role, practiceId } }`
 **Errors:** 409 (email exists)
 
+### `POST /auth/refresh` `@Public`
+Refresh access token using the `ortho_refresh` httpOnly cookie.
+
+**Cookie:** `ortho_refresh` (set automatically on login/register)
+**Response:** `{ accessToken: string }`
+**Side effect:** Sets new `ortho_refresh` cookie (rotate-on-use)
+**Errors:** 401 (no cookie, invalid/expired token, or token reuse detected)
+
+### `POST /auth/logout` `@Public`
+Revoke the refresh token family and clear the cookie.
+
+**Cookie:** `ortho_refresh`
+**Response:** `{ message: "Logged out" }`
+**Side effect:** Clears `ortho_refresh` cookie, revokes all tokens in the family
+
 ### `GET /auth/me`
 Get current doctor profile.
 
@@ -101,6 +118,21 @@ Get current patient profile.
 
 **Auth:** Patient JWT (PatientAuthGuard)
 **Response:** `PatientProfile { id, name, email, practiceId, treatmentType, alignerBrand, currentStage, totalStages, scanFrequency, status }`
+
+### `POST /patient-auth/refresh` `@Public`
+Refresh patient access token using the `patient_refresh` httpOnly cookie.
+
+**Cookie:** `patient_refresh` (set automatically on login/register)
+**Response:** `{ accessToken: string }`
+**Side effect:** Sets new `patient_refresh` cookie (rotate-on-use)
+**Errors:** 401 (no cookie, invalid/expired token, or token reuse detected)
+
+### `POST /patient-auth/logout` `@Public`
+Revoke the patient refresh token family and clear the cookie.
+
+**Cookie:** `patient_refresh`
+**Response:** `{ message: "Logged out" }`
+**Side effect:** Clears `patient_refresh` cookie, revokes all tokens in the family
 
 ### `GET /patient-auth/validate-invite/:token` `@Public`
 Validate an invite token.

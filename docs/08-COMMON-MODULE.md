@@ -280,6 +280,30 @@ See [Storage System](./09-STORAGE-SYSTEM.md) for full details.
 
 ---
 
+## RefreshTokenModule
+
+**Files:** `common/refresh-token/refresh-token.module.ts`, `common/refresh-token/refresh-token.service.ts`, `common/refresh-token/redis.service.ts`, `common/refresh-token/cookie.helper.ts`, `common/refresh-token/refresh-token.constants.ts`
+
+```typescript
+@Global()
+@Module({
+  providers: [RedisService, RefreshTokenService],
+  exports: [RefreshTokenService],
+})
+export class RefreshTokenModule {}
+```
+
+Provides rotate-on-use refresh tokens with token family tracking and stolen token detection. Uses Redis for hot-path lookups and PostgreSQL for durability.
+
+**Key services:**
+- `RedisService` — thin ioredis wrapper (`get`, `set`, `del`, `sadd`, `smembers`, `srem`, `expire`). Connects to `REDIS_URL` env var.
+- `RefreshTokenService` — `createRefreshToken()`, `rotateRefreshToken()`, `revokeFamily()`, `revokeAllUserTokens()`, `getFamilyIdByToken()`, `purgeExpired()`. Runs daily expired-token purge via `setInterval`.
+- `setRefreshCookie()` / `clearRefreshCookie()` — helper functions for httpOnly cookie management.
+
+See [Authentication System](./05-AUTHENTICATION-SYSTEM.md#refresh-tokens) for full details.
+
+---
+
 ## AiModule / AiService
 
 **Files:** `common/ai/ai.module.ts`, `common/ai/ai.service.ts`
@@ -301,6 +325,7 @@ See [AI Tagging System](./10-AI-TAGGING-SYSTEM.md) for full details.
 
 ```
 REQUEST IN
+  → cookie-parser middleware (parse cookies including refresh tokens)
   → JwtAuthGuard (validate JWT, skip if @Public)
   → PracticeIsolationGuard (inject practiceId, block cross-tenant)
   → ValidationPipe (validate DTOs)

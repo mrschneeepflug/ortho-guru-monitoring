@@ -10,14 +10,15 @@ AppModule
 ├── StorageModule (global)
 ├── AiModule (global)
 ├── NotificationsModule (global — push service + event listeners)
+├── RefreshTokenModule (global — Redis + refresh token service)
 ├── AuthModule
 │   ├── PassportModule
-│   └── JwtModule (7-day)
+│   └── JwtModule (15-min access)
 ├── PracticesModule
 ├── PatientsModule
 │   └── PatientAuthModule
 ├── PatientAuthModule
-│   └── JwtModule (30-day)
+│   └── JwtModule (1-hour access)
 ├── PatientPortalModule
 ├── ScansModule
 ├── TaggingModule
@@ -25,7 +26,7 @@ AppModule
 └── DashboardModule
 ```
 
-Global modules (PrismaModule, StorageModule, AiModule, NotificationsModule) are available everywhere without explicit imports.
+Global modules (PrismaModule, StorageModule, AiModule, NotificationsModule, RefreshTokenModule) are available everywhere without explicit imports.
 
 ---
 
@@ -41,8 +42,10 @@ Handles doctor authentication: login, registration, JWT generation, and Auth0 in
 
 | Method | Description |
 |--------|-------------|
-| `register(dto)` | Create doctor with bcrypt-hashed password, return JWT |
-| `login(dto)` | Validate credentials, return JWT |
+| `register(dto, meta?)` | Create doctor with bcrypt-hashed password, return JWT + refresh token |
+| `login(dto, meta?)` | Validate credentials, return JWT + refresh token |
+| `refreshAccessToken(rawToken, meta?)` | Rotate refresh token, return new JWT + refresh token |
+| `logout(rawToken)` | Revoke refresh token family |
 | `getMe(doctorId)` | Fetch doctor profile by ID |
 | `findOrCreateAuth0User(auth0Sub, email, name)` | Create/link doctor for Auth0 SSO |
 | `generateToken(doctor)` | Sign JWT with `{ sub, email, role, practiceId, type: 'doctor' }` |
@@ -60,7 +63,7 @@ Handles doctor authentication: login, registration, JWT generation, and Auth0 in
 **Files:** `patient-auth.module.ts`, `patient-auth.controller.ts`, `patient-auth.service.ts`, `dto/`
 
 ### Purpose
-Handles patient invite generation, registration, and login with 30-day tokens.
+Handles patient invite generation, registration, login, and refresh/logout with 1-hour access tokens and 30-day refresh tokens.
 
 ### Service Methods
 
@@ -68,12 +71,14 @@ Handles patient invite generation, registration, and login with 30-day tokens.
 |--------|-------------|
 | `createInvite(patientId, email, practiceId)` | Generate 7-day invite token (32-byte hex) |
 | `validateInvite(token)` | Check validity, expiry, and used status |
-| `register(token, email, password)` | Validate invite, hash password, update patient, mark invite used (transaction) |
-| `login(email, password)` | Authenticate patient, return 30-day JWT |
+| `register(token, email, password, meta?)` | Validate invite, hash password, update patient, mark invite used (transaction), return JWT + refresh token |
+| `login(email, password, meta?)` | Authenticate patient, return JWT + refresh token |
+| `refreshAccessToken(rawToken, meta?)` | Rotate refresh token, return new JWT + refresh token |
+| `logout(rawToken)` | Revoke refresh token family |
 | `getProfile(patientId)` | Get patient with doctor name |
 
 ### Design Decisions
-- Separate JwtModule with 30-day expiry (vs 7-day for doctors)
+- Separate JwtModule with 1-hour access token expiry (vs 15-min for doctors)
 - Invite-based registration: patients can only register with a valid invite from their doctor
 - Uses `crypto.randomBytes(32).toString('hex')` for invite tokens
 - Registration is transactional: patient update + invite marking happen atomically

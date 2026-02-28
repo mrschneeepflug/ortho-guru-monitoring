@@ -296,6 +296,30 @@ One-to-one with ScanSession. Created when a doctor reviews a scan.
 
 ---
 
+### RefreshToken
+
+Stores hashed refresh tokens for rotate-on-use token refresh. Redis is the hot-path lookup; this table provides durability and audit trail.
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | String | @id @default(cuid()) | Primary key |
+| `tokenHash` | String | @unique | SHA-256 hash of the raw token |
+| `familyId` | String | | Token family (all rotations share this) |
+| `userId` | String | | Doctor ID or Patient ID |
+| `userType` | String | | `"doctor"` or `"patient"` |
+| `practiceId` | String | | Tenant scope |
+| `expiresAt` | DateTime | | When this token expires |
+| `revokedAt` | DateTime? | | Set when revoked (reuse detection or logout) |
+| `replacedBy` | String? | | Hash of the replacement token (on rotation) |
+| `userAgent` | String? | | Browser user agent at creation |
+| `ipAddress` | String? | | Client IP at creation |
+| `createdAt` | DateTime | @default(now()) | |
+
+**Indexes:** `familyId`, `[userId, userType]`, `expiresAt`
+**Table:** `refresh_tokens`
+
+---
+
 ### PushSubscription
 
 Stores web push subscription endpoints for patient notifications.
